@@ -6,13 +6,16 @@ import (
 	"fmt"
 	"github.com/viant/scy"
 	"github.com/viant/scy/cred"
+	"github.com/viant/scy/kms"
 	_ "github.com/viant/scy/kms/blowfish"
+	"github.com/viant/scy/kms/gcp"
 	"log"
 )
 
 func ExampleService_Load() {
 
 	{ //loading secret from google cloud secret manager
+
 		resource := scy.NewResource("secret", "gcp://secretmanager/projects/gcp-e2e/secrets/test2sec", "")
 		secrets := scy.New()
 		secret, err := secrets.Load(context.Background(), resource)
@@ -23,6 +26,12 @@ func ExampleService_Load() {
 	}
 
 	{ //loading secret from cloud storage encrypted with GCP KMS
+		cipher, err := gcp.New(context.Background())
+		if err != nil {
+			log.Fatalln(err)
+		}
+		kms.Register(gcp.Schema, cipher)
+
 		resource := scy.NewResource("secret", "gs://mybucket/asset.enc", "gcp://kms/projects/my-project/locations/us-central1/keyRings/my-ring/cryptoKeys/my-key")
 		secrets := scy.New()
 		secret, err := secrets.Load(context.Background(), resource)
