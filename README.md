@@ -42,7 +42,7 @@ func ExampleService_Load() {
 
 
 	{ //loading secret from google cloud secret manager
-		resource := scy.NewResource("secret", "gcp://secretmanager/projects/gcp-e2e/secrets/test2sec", "")
+		resource := scy.NewResource("secret", "gcp://secretmanager/projects/gcp-e2e/secrets/myseret", "")
 		secrets := scy.New()
 		secret, err := secrets.Load(context.Background(), resource)
 		if err != nil {
@@ -57,7 +57,7 @@ func ExampleService_Load() {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		kms.Register(gcp.Schema, cipher)
+		kms.Register(gcp.Scheme, cipher)
 		
 		resource := scy.NewResource("secret", "gs://mybucket/asset.enc", "gcp://kms/projects/my-project/locations/us-central1/keyRings/my-ring/cryptoKeys/my-key")
 		secrets := scy.New()

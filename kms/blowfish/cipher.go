@@ -8,7 +8,7 @@ import (
 	"golang.org/x/crypto/blowfish"
 )
 
-const schema = "blowfish"
+const scheme = "blowfish"
 
 var defaultKey = []byte{0x24, 0x66, 0xDD, 0x87, 0x8B, 0x96, 0x3C, 0x9D}
 

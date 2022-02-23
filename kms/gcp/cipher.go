@@ -9,8 +9,8 @@ import (
 	"google.golang.org/api/option"
 )
 
-//Schema represents gcp cipher scheme
-const Schema = "gcp"
+//Scheme represents gcp cipher scheme
+const Scheme = "gcp"
 
 //Cipher represents gcp cipher
 type Cipher struct {

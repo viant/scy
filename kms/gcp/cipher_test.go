@@ -27,7 +27,7 @@ func TestGCPKms_Encrypt(t *testing.T) {
 		return
 	}
 
-	kms.Register(gcp.Schema, cipher)
+	kms.Register(gcp.Scheme, cipher)
 	var testCases = []struct {
 		description string
 		key         string

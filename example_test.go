@@ -30,7 +30,7 @@ func ExampleService_Load() {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		kms.Register(gcp.Schema, cipher)
+		kms.Register(gcp.Scheme, cipher)
 
 		resource := scy.NewResource("secret", "gs://mybucket/asset.enc", "gcp://kms/projects/my-project/locations/us-central1/keyRings/my-ring/cryptoKeys/my-key")
 		secrets := scy.New()
@@ -40,7 +40,6 @@ func ExampleService_Load() {
 		}
 		fmt.Printf("%v %v\n", secret.String())
 	}
-
 
 	{ //loading local secret
 		//Assume that : /tmp/secret.json {"Username":"Bob","EncryptedPassword":"AAAAAAAAAAAtM4MTWOJOJ4SyE44PjH66"}
