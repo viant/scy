@@ -1,0 +1,2 @@
+- add vault integration
+- add JWT auth workflow
