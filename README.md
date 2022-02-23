@@ -116,8 +116,10 @@ func ExampleService_Load() {
 
 ## Secret store file system
 
-You can use URL [Secret stores](https://github.com/viant/afsc#secret-stores)
-
+You can use diractly the following [Secret stores](https://github.com/viant/afsc#secret-stores)
+ - GCP Google Secret Manager
+ - AWS - Secret Manager
+ - AWS - System Manager - Parameter
 
 ## Keys
 
