@@ -1,30 +1,4 @@
-## scy - secure store api for golang
-
-[![GoReportCard](https://goreportcard.com/badge/github.com/viant/scy)](https://goreportcard.com/report/github.com/viant/scy)
-[![GoDoc](https://godoc.org/github.com/viant/scy?status.svg)](https://godoc.org/github.com/viant/scy)
-
-This library is compatible with Go 1.16+
-
-Please refer to [`CHANGELOG.md`](CHANGELOG.md) if you encounter breaking changes.
-
-
-- [Motivation](#motivation)
-- [Introduction](#introduction)
-- [Usage](#usage) 
-- [License](#license)
-- [Credits and Acknowledgements](#credits-and-acknowledgements)
-
-
-
-## Motivation
-
-The goal of this project is provide API for integrating secret.
-
-## Usage
-
-
-```go
-package mypkg
+package scy_test
 
 import (
 	"context"
@@ -33,12 +7,10 @@ import (
 	"github.com/viant/scy"
 	"github.com/viant/scy/cred"
 	_ "github.com/viant/scy/kms/blowfish"
-	_ "github.com/viant/afsc/tree/master/gcp/secretmanager"
 	"log"
 )
 
 func ExampleService_Load() {
-
 
 	{ //loading secret from google cloud secret manager
 		resource := scy.NewResource("secret", "gcp://secretmanager/projects/gcp-e2e/secrets/test2sec", "")
@@ -107,44 +79,4 @@ func ExampleService_Load() {
 		}
 		fmt.Printf("%v %v\n", db, err)
 	}
-
-	
 }
-
-
-```
-
-## Secret store file system
-
-You can use URL [Secret stores](https://github.com/viant/afsc#secret-stores)
-
-
-## Keys
-
-- gcp://kms/projects/my-project/locations/us-central1/keyRings/my-ring/cryptoKeys/my-key
-- blowfish://default
-- blowfish://env/mykey
-- blowfish://localhost/localpath
-
-
-
-## Contribution
-
-
-scy is an open source project and contributors are welcome!
-
-See [TODO](TODO.md) list
-
-
-## License
-
-The source code is made available under the terms of the Apache License, Version 2, as stated in the file `LICENSE`.
-
-Individual files may be made available under their own specific license,
-all compatible with Apache License, Version 2. Please see individual files for details.
-
-## Credits and Acknowledgements
-
-Authors:
-
-- Adrian Witas
