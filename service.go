@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"github.com/viant/afs"
 	"github.com/viant/afs/file"
+	"github.com/viant/scy/cred"
 	"github.com/viant/scy/kms"
 	"reflect"
 )
@@ -75,6 +76,11 @@ func (s *Service) Load(ctx context.Context, resource *Resource) (*Secret, error)
 		Resource: resource,
 		payload:  data,
 	}
+	if resource.Name == "" && resource.target == nil {
+		if isJSON := json.Valid(data); isJSON {
+			resource.target = reflect.TypeOf(cred.Generic{})
+		}
+	}
 	shallDecipher := key != nil
 	if resource.target != nil {
 		value := reflect.New(resource.target).Interface()
@@ -96,8 +102,11 @@ func (s *Service) Load(ctx context.Context, resource *Resource) (*Secret, error)
 	}
 	secret.IsPlain = !(bytes.HasPrefix(data, []byte{'{'}) && bytes.HasSuffix(data, []byte{'}'}))
 	secret.payload = data
+
 	if secret.Target == nil {
 		secret.Target = string(data)
+	} else {
+		secret.payload, _ = json.Marshal(secret.Target)
 	}
 	return secret, nil
 }

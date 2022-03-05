@@ -14,6 +14,20 @@ import (
 
 func ExampleService_Load() {
 
+	{ //loading generic credentials from google secret manager
+
+		resource := scy.NewResource("", "gcp://secretmanager/projects/gcp-e2e/secrets/mycred", "")
+		secrets := scy.New()
+		secret, err := secrets.Load(context.Background(), resource)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		fmt.Printf("%T ->  %s\n", secret.Target, secret.String())
+		dsn := "${Username}:${Password}}@/dbname"
+		db, err := sql.Open("mysql", secret.Expand(dsn))
+		fmt.Printf("%v %v\n", db, err)
+	}
+
 	{ //loading secret from google cloud secret manager
 
 		resource := scy.NewResource("secret", "gcp://secretmanager/projects/gcp-e2e/secrets/test2sec", "")
@@ -22,7 +36,7 @@ func ExampleService_Load() {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		fmt.Printf("%v %v\n", secret.String())
+		fmt.Printf("%v\n", secret.String())
 	}
 
 	{ //loading secret from cloud storage encrypted with GCP KMS
@@ -38,7 +52,7 @@ func ExampleService_Load() {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		fmt.Printf("%v %v\n", secret.String())
+		fmt.Printf("%v \n", secret.String())
 	}
 
 	{ //loading local secret

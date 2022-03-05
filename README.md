@@ -40,10 +40,22 @@ import (
 
 func ExampleService_Load() {
 
+	{ //loading generic credentials from google secret manager
+		resource := scy.NewResource("", "gcp://secretmanager/projects/gcp-e2e/secrets/mycred", "")
+		secrets := scy.New()
+		secret, err := secrets.Load(context.Background(), resource)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		fmt.Printf("%v ->  %s\n", secret.Target, secret.String())
+		dsn := "${Username}:${Password}}@/dbname"
+		db, err := sql.Open("mysql", secret.Expand(dsn))
+		fmt.Printf("%v %v\n", db, err)
+	}
 
 	{ //loading secret from google cloud secret manager
 		resource := scy.NewResource("secret", 
-			"gcp://secretmanager/projects/gcp-e2e/secrets/myseret", "")
+			"gcp://secretmanager/projects/gcp-e2e/secrets/mysecret", "")
 		secrets := scy.New()
 		secret, err := secrets.Load(context.Background(), resource)
 		if err != nil {

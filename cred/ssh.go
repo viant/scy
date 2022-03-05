@@ -9,7 +9,7 @@ import (
 //SSH represents SSH config
 type SSH struct {
 	Basic
-	PrivateKeyPassword          string
+	PrivateKeyPassword          string `json:",omitempty"`
 	EncryptedPrivateKeyPassword string `json:",omitempty"`
 }
 

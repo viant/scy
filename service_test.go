@@ -2,10 +2,10 @@ package scy_test
 
 import (
 	"context"
-	_ "github.com/viant/scy/kms/blowfish"
 	"github.com/stretchr/testify/assert"
 	"github.com/viant/scy"
 	"github.com/viant/scy/cred"
+	_ "github.com/viant/scy/kms/blowfish"
 	"path"
 	"testing"
 )
@@ -30,6 +30,12 @@ func TestService_Load(t *testing.T) {
 			resource:    scy.NewResource(cred.Basic{}, path.Join(basePath, "json.sec"), "blowfish://default"),
 			secret:      scy.NewSecret(&cred.Basic{Username: "Bob", Password: "ch@nge!Me"}, nil),
 			expect:      &cred.Basic{Username: "Bob", Password: "ch@nge!Me"},
+		},
+		{
+			description: "generic secrets",
+			resource:    scy.NewResource("", path.Join(basePath, "json.sec"), "blowfish://default"),
+			secret:      scy.NewSecret(&cred.Basic{Username: "Bob", Password: "ch@nge!Me"}, nil),
+			expect:      &cred.Generic{SSH: cred.SSH{Basic: cred.Basic{Username: "Bob", Password: "ch@nge!Me"}}},
 		},
 	}
 

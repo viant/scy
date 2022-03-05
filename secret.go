@@ -40,7 +40,13 @@ func (s *Secret) Expand(text string) string {
 	} else {
 		kvParis := map[string]interface{}{}
 		_ = s.Decode(&kvParis)
-		replacement[s.Name] = kvParis
+		if s.Name != "" {
+			replacement[s.Name] = kvParis
+		} else {
+			for k, v := range kvParis {
+				replacement[k] = v
+			}
+		}
 	}
 	return replacement.ExpandAsText(text)
 }
