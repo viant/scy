@@ -23,7 +23,7 @@ func ExampleService_Load() {
 			log.Fatalln(err)
 		}
 		fmt.Printf("%T ->  %s\n", secret.Target, secret.String())
-		dsn := "${Username}:${Password}}@/dbname"
+		dsn := "${Username}:${Password}@/dbname"
 		db, err := sql.Open("mysql", secret.Expand(dsn))
 		fmt.Printf("%v %v\n", db, err)
 	}

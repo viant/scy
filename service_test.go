@@ -11,7 +11,6 @@ import (
 )
 
 func TestService_Load(t *testing.T) {
-
 	basePath := "/tmp/" // os.TempDir()
 	var testCases = []struct {
 		description string

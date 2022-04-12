@@ -43,8 +43,8 @@ func (b *Basic) Decipher(ctx context.Context, key *kms.Key) error {
 	if err != nil {
 		return err
 	}
-	var encrypted = make([]byte, base64.StdEncoding.DecodedLen(len(b.EncryptedPassword)))
-	if _, err = base64.StdEncoding.Decode(encrypted, []byte(b.EncryptedPassword)); err != nil {
+	encrypted, err := base64.StdEncoding.DecodeString(b.EncryptedPassword)
+	if err != nil {
 		return err
 	}
 	decrypted, err := cipher.Decrypt(ctx, key, encrypted)

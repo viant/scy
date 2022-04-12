@@ -68,6 +68,8 @@ func (s *Service) loadKeyCipher(resourceKey string) (*kms.Key, kms.Cipher, error
 func (s *Service) Load(ctx context.Context, resource *Resource) (*Secret, error) {
 	if strings.HasPrefix(resource.URL, "~") {
 		resource.URL = os.Getenv("HOME") + resource.URL[1:]
+	} else if strings.HasPrefix(resource.URL, "/~") {
+		resource.URL = os.Getenv("HOME") + resource.URL[2:]
 	}
 	data, err := s.fs.DownloadWithURL(ctx, resource.URL)
 	if err != nil {
@@ -105,7 +107,7 @@ func (s *Service) Load(ctx context.Context, resource *Resource) (*Secret, error)
 			return nil, err
 		}
 	}
-	secret.IsPlain = !(bytes.HasPrefix(data, []byte{'{'}) && bytes.HasSuffix(data, []byte{'}'}))
+	secret.IsPlain = !json.Valid(data)
 	secret.payload = data
 
 	if secret.Target == nil {
