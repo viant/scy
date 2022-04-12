@@ -8,7 +8,9 @@ import (
 	"github.com/viant/afs/file"
 	"github.com/viant/scy/cred"
 	"github.com/viant/scy/kms"
+	"os"
 	"reflect"
+	"strings"
 )
 
 //Service represents secret service
@@ -64,6 +66,9 @@ func (s *Service) loadKeyCipher(resourceKey string) (*kms.Key, kms.Cipher, error
 
 //Load loads secret
 func (s *Service) Load(ctx context.Context, resource *Resource) (*Secret, error) {
+	if strings.HasPrefix(resource.URL, "~") {
+		resource.URL = os.Getenv("HOME") + resource.URL[1:]
+	}
 	data, err := s.fs.DownloadWithURL(ctx, resource.URL)
 	if err != nil {
 		return nil, err
