@@ -54,7 +54,7 @@ func New(ctx context.Context, opts ...option.ClientOption) (*Cipher, error) {
 	opts = append(opts, option.WithScopes(cloudkms.CloudPlatformScope, cloudkms.CloudkmsScope))
 	kmsService, err := cloudkms.NewService(ctx, opts...)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create kmsService server for key, %w", err)
+		return nil, fmt.Errorf("failed to create kmsService endpoint for key, %w", err)
 	}
 	return &Cipher{Service: kmsService}, nil
 }

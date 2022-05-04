@@ -66,15 +66,19 @@ func (s *Service) loadKeyCipher(resourceKey string) (*kms.Key, kms.Cipher, error
 
 //Load loads secret
 func (s *Service) Load(ctx context.Context, resource *Resource) (*Secret, error) {
-	if strings.HasPrefix(resource.URL, "~") {
-		resource.URL = os.Getenv("HOME") + resource.URL[1:]
-	} else if strings.HasPrefix(resource.URL, "/~") {
-		resource.URL = os.Getenv("HOME") + resource.URL[2:]
+	data := resource.Data
+	if len(resource.Data) == 0 {
+		if strings.HasPrefix(resource.URL, "~") {
+			resource.URL = os.Getenv("HOME") + resource.URL[1:]
+		} else if strings.HasPrefix(resource.URL, "/~") {
+			resource.URL = os.Getenv("HOME") + resource.URL[2:]
+		}
+		var err error
+		if data, err = s.fs.DownloadWithURL(ctx, resource.URL); err != nil {
+			return nil, err
+		}
 	}
-	data, err := s.fs.DownloadWithURL(ctx, resource.URL)
-	if err != nil {
-		return nil, err
-	}
+
 	key, cipher, err := s.loadKeyCipher(resource.Key)
 	if err != nil {
 		return nil, err
@@ -83,13 +87,14 @@ func (s *Service) Load(ctx context.Context, resource *Resource) (*Secret, error)
 		Resource: resource,
 		payload:  data,
 	}
+	isJSON := json.Valid(data)
 	if resource.Name == "" && resource.target == nil {
-		if isJSON := json.Valid(data); isJSON {
+		if isJSON {
 			resource.target = reflect.TypeOf(cred.Generic{})
 		}
 	}
 	shallDecipher := key != nil
-	if resource.target != nil {
+	if resource.target != nil && isJSON {
 		value := reflect.New(resource.target).Interface()
 		if err = secret.Decode(value); err != nil {
 			return nil, err
@@ -106,8 +111,16 @@ func (s *Service) Load(ctx context.Context, resource *Resource) (*Secret, error)
 		if data, err = cipher.Decrypt(ctx, key, data); err != nil {
 			return nil, err
 		}
+		if isJSON = json.Valid(data); isJSON {
+			if resource.target != nil && isJSON {
+				value := reflect.New(resource.target).Interface()
+				if err = json.Unmarshal(data, value); err == nil {
+					secret.Target = value
+				}
+			}
+		}
 	}
-	secret.IsPlain = !json.Valid(data)
+	secret.IsPlain = !isJSON
 	secret.payload = data
 
 	if secret.Target == nil {
