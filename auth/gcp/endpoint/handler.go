@@ -14,7 +14,7 @@ var content = `
 		<meta http-equiv="refresh" content="0; url=https://www.viantinc.com/" />
      </head>
    <body>
-      <p>Scy Client OAuth</p>
+      <p>Scy OAuth Client</p>
    </body>
 </html>
 `
