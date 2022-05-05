@@ -15,7 +15,6 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/idtoken"
-	"google.golang.org/api/option"
 	"math/rand"
 	"net/http"
 	"time"
@@ -57,7 +56,7 @@ func (s *Service) IDClient(ctx context.Context, audience string, scopes ...strin
 
 func (s *Service) IDToken(ctx context.Context, audience string, scopes ...string) (*oauth2.Token, error) {
 	if credentials, _ := google.FindDefaultCredentials(ctx, scopes...); credentials != nil {
-		tokenSource, err := idtoken.NewTokenSource(ctx, audience, option.WithScopes(scopes...))
+		tokenSource, err := idtoken.NewTokenSource(ctx, audience)
 		if err != nil {
 			return nil, err
 		}
