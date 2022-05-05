@@ -30,6 +30,6 @@ func TokenClaims(token *jw.Token) (*Claims, error) {
 	}
 	data, _ := json.Marshal(claims)
 	ret := &Claims{}
-	err := json.Unmarshal(data, claims)
+	err := json.Unmarshal(data, ret)
 	return ret, err
 }

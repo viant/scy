@@ -1,10 +1,9 @@
-package scy_test
+package scy
 
 import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/viant/scy"
 	"github.com/viant/scy/cred"
 	"github.com/viant/scy/kms"
 	_ "github.com/viant/scy/kms/blowfish"
@@ -16,8 +15,8 @@ func ExampleService_Load() {
 
 	{ //loading generic credentials from google secret manager
 
-		resource := scy.NewResource("", "gcp://secretmanager/projects/gcp-e2e/secrets/mycred", "")
-		secrets := scy.New()
+		resource := NewResource("", "gcp://secretmanager/projects/gcp-e2e/secrets/mycred", "")
+		secrets := New()
 		secret, err := secrets.Load(context.Background(), resource)
 		if err != nil {
 			log.Fatalln(err)
@@ -30,8 +29,8 @@ func ExampleService_Load() {
 
 	{ //loading secret from google cloud secret manager
 
-		resource := scy.NewResource("secret", "gcp://secretmanager/projects/gcp-e2e/secrets/test2sec", "")
-		secrets := scy.New()
+		resource := NewResource("secret", "gcp://secretmanager/projects/gcp-e2e/secrets/test2sec", "")
+		secrets := New()
 		secret, err := secrets.Load(context.Background(), resource)
 		if err != nil {
 			log.Fatalln(err)
@@ -46,8 +45,8 @@ func ExampleService_Load() {
 		}
 		kms.Register(gcp.Scheme, cipher)
 
-		resource := scy.NewResource("secret", "gs://mybucket/asset.enc", "gcp://kms/projects/my-project/locations/us-central1/keyRings/my-ring/cryptoKeys/my-key")
-		secrets := scy.New()
+		resource := NewResource("secret", "gs://mybucket/asset.enc", "gcp://kms/projects/my-project/locations/us-central1/keyRings/my-ring/cryptoKeys/my-key")
+		secrets := New()
 		secret, err := secrets.Load(context.Background(), resource)
 		if err != nil {
 			log.Fatalln(err)
@@ -58,8 +57,8 @@ func ExampleService_Load() {
 	{ //loading local secret
 		//Assume that : /tmp/secret.json {"Username":"Bob","EncryptedPassword":"AAAAAAAAAAAtM4MTWOJOJ4SyE44PjH66"}
 		//make sure _ "github.com/viant/scy/kms/blowfish" is imported
-		resource := scy.NewResource(cred.Basic{}, "/tmp/secret.json", "blowfish://default")
-		secrets := scy.New()
+		resource := NewResource(cred.Basic{}, "/tmp/secret.json", "blowfish://default")
+		secrets := New()
 		secret, err := secrets.Load(context.Background(), resource)
 		if err != nil {
 			log.Fatalln(err)
@@ -72,8 +71,8 @@ func ExampleService_Load() {
 	}
 
 	{ //loading encrypted file
-		resource := scy.NewResource("password", "/tmp/password.enc", "blowfish://default")
-		secrets := scy.New()
+		resource := NewResource("password", "/tmp/password.enc", "blowfish://default")
+		secrets := New()
 		secret, err := secrets.Load(context.Background(), resource)
 		if err != nil {
 			log.Fatalln(err)
@@ -88,8 +87,8 @@ func ExampleService_Load() {
 	}
 
 	{ //loading structured encrypted file
-		resource := scy.NewResource("password", "/tmp/cred.enc", "blowfish://default")
-		secrets := scy.New()
+		resource := NewResource("password", "/tmp/cred.enc", "blowfish://default")
+		secrets := New()
 		secret, err := secrets.Load(context.Background(), resource)
 		if err != nil {
 			log.Fatalln(err)

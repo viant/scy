@@ -1,0 +1,20 @@
+init:
+  appPath: $Pwd(.)
+  '!gcpCredentials': $params.authWith
+  gcp: ${secrets.$gcpCredentials}
+pipeline:
+
+  deploy:
+    action: gcp/cloudfunctions:deploy
+    credentials: $gcpCredentials
+    '@name': TestAuth
+    timeout: 540s
+    members:
+      - user:awitas@vindicotech.com
+    availableMemoryMb: 256
+    entryPoint: AuthTest
+    runtime: go116
+    retry: true
+    serviceAccountEmail: ${gcp.serviceAccount}
+    source:
+      URL: ${appPath}/
