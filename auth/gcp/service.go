@@ -55,6 +55,9 @@ func (s *Service) IDClient(ctx context.Context, audience string, scopes ...strin
 }
 
 func (s *Service) IDToken(ctx context.Context, audience string, scopes ...string) (*oauth2.Token, error) {
+	if len(scopes) == 0 {
+		scopes = Scopes
+	}
 	if credentials, _ := google.FindDefaultCredentials(ctx, scopes...); credentials != nil {
 		tokenSource, err := idtoken.NewTokenSource(ctx, audience)
 		if err != nil {
