@@ -127,7 +127,7 @@ func (s *Service) tokenWithBrowserFlow(scopes []string) (*auth.Token, error) {
 		return nil, err
 	}
 	token := &auth.Token{Token: *tkn}
-	token.populateIDToken()
+	token.PopulateIDToken()
 	_ = s.storeToken(token)
 	return token, nil
 }

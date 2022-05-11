@@ -30,7 +30,7 @@ func (t *Token) IdentityToken() (*oauth2.Token, error) {
 	}, nil
 }
 
-func (t *Token) populateIDToken() {
+func (t *Token) PopulateIDToken() {
 	raw := t.Raw()
 	if raw == nil {
 		return
