@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/viant/afs"
 	"github.com/viant/afs/file"
+	"github.com/viant/scy/auth"
 	"github.com/viant/scy/auth/browser"
 	"github.com/viant/scy/auth/gcp/endpoint"
 	"golang.org/x/oauth2"
@@ -76,13 +77,13 @@ func (s *Service) IDToken(ctx context.Context, audience string, scopes ...string
 	return token.IdentityToken()
 }
 
-func (s *Service) Auth(ctx context.Context, scopes ...string) (*Token, error) {
+func (s *Service) Auth(ctx context.Context, scopes ...string) (*auth.Token, error) {
 	if tokenSource, _ := google.DefaultTokenSource(ctx, scopes...); tokenSource != nil {
 		tkn, err := tokenSource.Token()
 		if err != nil {
 			return nil, err
 		}
-		return &Token{Token: *tkn}, nil
+		return &auth.Token{Token: *tkn}, nil
 	}
 	if metadata.OnGCE() {
 		return nil, fmt.Errorf("failed to acquite token on GCE")
@@ -93,7 +94,7 @@ func (s *Service) Auth(ctx context.Context, scopes ...string) (*Token, error) {
 	return s.tokenWithBrowserFlow(scopes)
 }
 
-func (s *Service) tokenWithBrowserFlow(scopes []string) (*Token, error) {
+func (s *Service) tokenWithBrowserFlow(scopes []string) (*auth.Token, error) {
 	server, err := endpoint.New()
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed start auth callback endpoint")
@@ -125,13 +126,13 @@ func (s *Service) tokenWithBrowserFlow(scopes []string) (*Token, error) {
 	if err != nil {
 		return nil, err
 	}
-	token := &Token{Token: *tkn}
+	token := &auth.Token{Token: *tkn}
 	token.populateIDToken()
 	_ = s.storeToken(token)
 	return token, nil
 }
 
-func (s *Service) storeToken(token *Token) error {
+func (s *Service) storeToken(token *auth.Token) error {
 	tokenURL := s.client.localTokenURL()
 	data, err := json.Marshal(token)
 	if err != nil {
@@ -140,13 +141,13 @@ func (s *Service) storeToken(token *Token) error {
 	return s.fs.Upload(context.Background(), tokenURL, file.DefaultFileOsMode, bytes.NewReader(data))
 }
 
-func (s *Service) loadCachedToken() (*Token, error) {
+func (s *Service) loadCachedToken() (*auth.Token, error) {
 	tokenURL := s.client.localTokenURL()
 	data, err := s.fs.DownloadWithURL(context.Background(), tokenURL)
 	if err != nil {
 		return nil, err
 	}
-	token := &Token{}
+	token := &auth.Token{}
 	if err = json.Unmarshal(data, token); err != nil {
 		return nil, err
 	}
