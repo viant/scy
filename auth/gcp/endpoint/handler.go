@@ -6,18 +6,16 @@ import (
 	"net/url"
 )
 
-var content = `
-<!DOCTYPE html>
+var content = `<!DOCTYPE html>
 <html>
    <head>
-      <title>HTML Meta Tag</title>
-		<meta http-equiv="refresh" content="0; url=https://www.viantinc.com/" />
+      	<title>HTML Meta Tag</title>
+		<meta http-equiv="refresh" content="0; url="https://github.com/viant/scy" />
      </head>
    <body>
       <p>Scy OAuth Client</p>
    </body>
-</html>
-`
+</html>`
 
 type httpHandler struct {
 	values url.Values
