@@ -84,8 +84,8 @@ func (s *Service) VerifyIdentity(ctx context.Context, rawToken string) (*sjwt.Cl
 	return claims, err
 }
 
-//Mew creates new cogito auth service
-func Mew(ctx context.Context, config *Config) (*Service, error) {
+//New creates new cogito auth service
+func New(ctx context.Context, config *Config) (*Service, error) {
 	config.Init()
 	if config.Resource != nil {
 		secrets := scy.New()
