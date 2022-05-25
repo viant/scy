@@ -1,7 +1,6 @@
 package endpoint
 
 import (
-	"fmt"
 	"net/http"
 	"net/url"
 )
@@ -38,8 +37,6 @@ func (h *httpHandler) ServeHTTP(writer http.ResponseWriter, request *http.Reques
 
 //AuthCode returns auth codde
 func (h *httpHandler) AuthCode() string {
-	fmt.Printf("%+v\n", h.values)
-
 	/*
 		https://localhost:8085/?state=Q9X8NrfPqYiqLGFxhudGbIuFnqahSu&code=4/0AX4XfWgKkjKQQRKzVwW8bA6__SapAdcQd0b9XrbAB-YGqAVUmINU-XkVxc3GR1riMaDpGg&scope=email%20openid%20https://www.googleapis.com/auth/userinfo.email%20https://www.googleapis.com/auth/cloud-platform%20https://www.googleapis.com/auth/appengine.admin%20https://www.googleapis.com/auth/compute%20https://www.googleapis.com/auth/accounts.reauth&authuser=0&hd=vindicotech.com&prompt=consent
 	*/

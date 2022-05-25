@@ -37,7 +37,9 @@ func NewScy() *gcp.Client {
 	}
 	var err error
 	scyClient, err = loadEncryptedClient(scyEnc)
-	fmt.Printf("%v\n", err)
+	if err != nil {
+		fmt.Printf("%v\n", err)
+	}
 	return scyClient
 }
 
