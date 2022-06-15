@@ -1,3 +1,4 @@
+go.sum
 .idea
 example_test.go
 service_test.go
