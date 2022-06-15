@@ -7,11 +7,12 @@ import (
 
 //Resource represents a secret config
 type Resource struct {
-	Name   string `json:",omitempty"`
-	URL    string `json:",omitempty"`
-	Key    string `json:",omitempty"` //encryption key
-	Data   []byte
-	target reflect.Type
+	Name     string `json:",omitempty"`
+	URL      string `json:",omitempty"`
+	Key      string `json:",omitempty"` //encryption key
+	Fallback *Resource
+	Data     []byte
+	target   reflect.Type
 }
 
 //SetTarget sets target type

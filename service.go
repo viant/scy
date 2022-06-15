@@ -25,6 +25,18 @@ func (s *Service) Store(ctx context.Context, secret *Secret) error {
 		return err
 	}
 	payload := secret.payload
+	err = s.store(ctx, secret, err, payload)
+	if err != nil {
+		if secret.Resource.Fallback != nil {
+			clone := *secret
+			clone.Resource = secret.Resource.Fallback
+			return s.Store(ctx, &clone)
+		}
+	}
+	return err
+}
+
+func (s *Service) store(ctx context.Context, secret *Secret, err error, payload []byte) error {
 	key, cipher, err := s.loadKeyCipher(secret.Key)
 	if err != nil {
 		return err
@@ -46,6 +58,7 @@ func (s *Service) Store(ctx context.Context, secret *Secret) error {
 			return err
 		}
 	}
+
 	return s.fs.Upload(ctx, secret.URL, file.DefaultFileOsMode, bytes.NewReader(payload))
 }
 
@@ -67,6 +80,16 @@ func (s *Service) loadKeyCipher(resourceKey string) (*kms.Key, kms.Cipher, error
 //Load loads secret
 func (s *Service) Load(ctx context.Context, resource *Resource) (*Secret, error) {
 	data := resource.Data
+	secret, err := s.load(ctx, resource, data)
+	if err != nil {
+		if resource.Fallback != nil {
+			return s.Load(ctx, resource.Fallback)
+		}
+	}
+	return secret, err
+}
+
+func (s *Service) load(ctx context.Context, resource *Resource, data []byte) (*Secret, error) {
 	if len(resource.Data) == 0 {
 		if strings.HasPrefix(resource.URL, "~") {
 			resource.URL = os.Getenv("HOME") + resource.URL[1:]
