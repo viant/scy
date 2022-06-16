@@ -1,6 +1,28 @@
 ## Scy secure secret store CLI client
 
 
+#### Installation
+
+Latest binary can be found in [release](https://github.com/viant/scy/releases) section
+
+
+On x64 OSX
+
+```json
+wget https://github.com/viant/scy/releases/download/v0.1.0/scy_darwin_x64.tar.gz
+tar xvzf scy_darwin_x64.tar.gz
+cp scy /usr/local/bin
+```
+
+On x64 Linux
+
+```json
+wget https://github.com/viant/scy/releases/download/v0.1.0/scy_linux_x64.tar.gz
+tar xvzf scy_darwin_x64.tar.gz
+cp scy /usr/local/bin
+```
+
+
 #### Usage
 
 ```bash
