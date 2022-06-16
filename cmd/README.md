@@ -8,7 +8,7 @@ Latest binary can be found in [release](https://github.com/viant/scy/releases) s
 
 On x64 OSX
 
-```json
+```bash
 wget https://github.com/viant/scy/releases/download/v0.1.0/scy_darwin_x64.tar.gz
 tar xvzf scy_darwin_x64.tar.gz
 cp scy /usr/local/bin
@@ -16,7 +16,7 @@ cp scy /usr/local/bin
 
 On x64 Linux
 
-```json
+```bash
 wget https://github.com/viant/scy/releases/download/v0.1.0/scy_linux_x64.tar.gz
 tar xvzf scy_darwin_x64.tar.gz
 cp scy /usr/local/bin
