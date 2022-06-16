@@ -1,7 +1,7 @@
 ## Scy secure secret store CLI client
 
 
-#### Installation
+### Installation
 
 Latest binary can be found in [release](https://github.com/viant/scy/releases) section
 
@@ -58,15 +58,15 @@ To use GCP auth
 export GOOGLE_APPLICATION_CREDENTIALS=myGoogle.secret
 ```
 
-##### Securing secrets
+#### Securing secrets
 
-### Text
+##### Text
 
 ```bash
 scy -m=secure  -d=gcp://secretmanager/projects/viant-e2e/secrets/my_raw_secret1  -k=blowfish://default -t=raw ```
 ```
 
-### Basic credential
+##### Basic credential
 
 The source and dest can by any file system including local FS.
 
@@ -75,7 +75,7 @@ The source and dest can by any file system including local FS.
 ```
 
 
-### SHA1
+##### SHA1
 
 ```bash
 scy -m=secure -s=mySHA1.json -d=gcp://secretmanager/projects/myProject/secrets/my_secret1  -k=blowfish://default -t=sha1
@@ -88,15 +88,15 @@ where mySHA1.json uses the following format
 ```
 
 
-##### Revealing secrets
+#### Revealing secrets
 
-### Text
+##### Text
 
 ```bash
 scy -m=reveal -s=gcp://secretmanager/projects/viant-e2e/secrets/aw1test  -k=blowfish://default -t=ra
 ```
 
-### Basic credential
+##### Basic credential
 
 The source and dest can by any file system including local FS.
 
@@ -104,7 +104,7 @@ The source and dest can by any file system including local FS.
 ./scy -m=reveal  -s=securet_cred.json  -k=blowfish://default -t=basic
 ```
 
-### SHA1
+##### SHA1
 
 ```bash
 scy -m=reveal -s=gcp://secretmanager/projects/myProject/secrets/my_secret1  -k=blowfish://default -t=sha1
