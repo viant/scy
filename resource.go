@@ -40,6 +40,9 @@ func NewResource(target interface{}, URL, Key string) *Resource {
 		URL: URL,
 		Key: Key,
 	}
+	if target == nil {
+		return result
+	}
 	switch v := target.(type) {
 	case string:
 		result.Name = v

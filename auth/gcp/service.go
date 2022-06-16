@@ -77,6 +77,10 @@ func (s *Service) IDToken(ctx context.Context, audience string, scopes ...string
 	return token.IdentityToken()
 }
 
+func (s *Service) TokenSource(scopes ...string) oauth2.TokenSource {
+	return newTokenSource(s, scopes...)
+}
+
 func (s *Service) Auth(ctx context.Context, scopes ...string) (*auth.Token, error) {
 	if tokenSource, _ := google.DefaultTokenSource(ctx, scopes...); tokenSource != nil {
 		tkn, err := tokenSource.Token()

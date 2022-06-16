@@ -9,9 +9,9 @@ import (
 
 //SHA1 represents sha1 key secrets
 type SHA1 struct {
-	Key                   string `json:"-"`
+	Key                   string `json:",omitempty"`
 	EncryptedKey          string `json:",omitempty"`
-	IntegrityKey          string `json:"-"`
+	IntegrityKey          string `json:",omitempty"`
 	EncryptedIntegrityKey string `json:",omitempty"`
 }
 

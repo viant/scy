@@ -22,6 +22,18 @@ The goal of this project is provide API for integrating secret.
 
 ## Usage
 
+#### scy CLI client
+
+```bash
+  scy -m=secure  -d=gcp://secretmanager/projects/viant-e2e/secrets/my_raw_secret1  -k=blowfish://default -t=raw ```
+  scy -m=reveal -s=gcp://secretmanager/projects/viant-e2e/secrets/aw1test  -k=blowfish://default -t=ra
+```
+
+check [CLI](cmd/README.md) for mode details
+
+
+
+### In application
 
 ```go
 package mypkg
