@@ -6,7 +6,10 @@ import (
 	"github.com/viant/afs"
 	"github.com/viant/afs/file"
 	"github.com/viant/afs/url"
+	"hash/fnv"
+	"net"
 	"os"
+	"sort"
 	"strings"
 )
 
@@ -25,6 +28,8 @@ func (k *Key) Key(ctx context.Context, defaultValue []byte) ([]byte, error) {
 		return []byte(k.Path), nil
 	case "default":
 		return defaultValue, nil
+	case "mac":
+		return getMacKey()
 	case "env":
 		key := strings.Trim(k.Path, "/")
 		keyData := os.Getenv(key)
@@ -39,6 +44,56 @@ func (k *Key) Key(ctx context.Context, defaultValue []byte) ([]byte, error) {
 		fs := afs.New()
 		return fs.DownloadWithURL(ctx, k.Path)
 	}
+}
+
+func getMacKey() ([]byte, error) {
+	macs, err := getHardwareAddresses()
+	if err != nil {
+		return nil, err
+	}
+	sort.Strings(macs)
+	hash := fnv.New64()
+	for _, s := range macs {
+		if _, err = hash.Write([]byte(s)); err != nil {
+			return nil, err
+		}
+	}
+	value := hash.Sum(nil)
+	result := make([]byte, 8)
+	for i := len(value) - 1; i >= 0; i-- {
+		result[i] = value[i]
+	}
+	return result, nil
+}
+
+func getHardwareAddresses() ([]string, error) {
+	ifas, err := net.Interfaces()
+	if err != nil {
+		return []string{}, err
+	}
+	var macs []string
+outer:
+	for _, ifa := range ifas {
+		hardwareAddr := ifa.HardwareAddr.String()
+		if hardwareAddr == "" {
+			continue
+		}
+		ad, _ := ifa.Addrs()
+		if len(ad) == 0 {
+			continue
+		}
+		for _, c := range ad {
+			ipNet, ok := c.(*net.IPNet)
+			if !ok {
+				continue outer
+			}
+			if ipNet.IP.To4() == nil {
+				continue outer
+			}
+		}
+		macs = append(macs, hardwareAddr)
+	}
+	return macs, nil
 }
 
 //NewKey creates a new key

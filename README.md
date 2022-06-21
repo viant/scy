@@ -164,7 +164,7 @@ You can use diractly the following [Secret stores](https://github.com/viant/afsc
 - blowfish://default
 - blowfish://env/mykey
 - blowfish://localhost/localpath
-
+- blowfish://mac (Mac address based hashed key)
 
 
 ## Invoking secured cloud function
