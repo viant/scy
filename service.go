@@ -103,10 +103,12 @@ func (s *Service) load(ctx context.Context, resource *Resource, data []byte) (*S
 			tCtx, cancel := context.WithTimeout(ctx, resource.Timeout())
 			data, err = s.fs.DownloadWithURL(tCtx, resource.URL)
 			cancel()
-			if err != nil {
-				return nil, err
+			if err == nil {
+				break
 			}
-
+		}
+		if err != nil {
+			return nil, err
 		}
 	}
 
