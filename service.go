@@ -97,8 +97,16 @@ func (s *Service) load(ctx context.Context, resource *Resource, data []byte) (*S
 			resource.URL = os.Getenv("HOME") + resource.URL[2:]
 		}
 		var err error
-		if data, err = s.fs.DownloadWithURL(ctx, resource.URL); err != nil {
-			return nil, err
+
+		resource.Init()
+		for i := 0; i < resource.MaxRetry; i++ {
+			tCtx, cancel := context.WithTimeout(ctx, resource.Timeout())
+			data, err = s.fs.DownloadWithURL(tCtx, resource.URL)
+			cancel()
+			if err != nil {
+				return nil, err
+			}
+
 		}
 	}
 

@@ -3,16 +3,32 @@ package scy
 import (
 	"fmt"
 	"reflect"
+	"time"
 )
 
 //Resource represents a secret config
 type Resource struct {
-	Name     string `json:",omitempty"`
-	URL      string `json:",omitempty"`
-	Key      string `json:",omitempty"` //encryption key
-	Fallback *Resource
-	Data     []byte
-	target   reflect.Type
+	Name      string `json:",omitempty"`
+	URL       string `json:",omitempty"`
+	Key       string `json:",omitempty"` //encryption key
+	MaxRetry  int    `json:",omitempty"`
+	TimeoutMs int    `json:",omitempty"`
+	Fallback  *Resource
+	Data      []byte
+	target    reflect.Type
+}
+
+func (r *Resource) Timeout() time.Duration {
+	return time.Duration(r.TimeoutMs) * time.Millisecond
+}
+
+func (r *Resource) Init() {
+	if r.MaxRetry == 0 {
+		r.MaxRetry = 3
+	}
+	if r.TimeoutMs == 0 {
+		r.TimeoutMs = 5000
+	}
 }
 
 //SetTarget sets target type
