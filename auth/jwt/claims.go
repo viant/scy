@@ -8,10 +8,12 @@ import (
 
 //Claims represents JWT claim
 type Claims struct {
-	Email         string `json:"email,omitempty"`
-	Scope         string `json:"scope,omitempty"`
-	Cognito       string `json:"cognito,omitempty"`
-	VerifiedEmail bool   `json:"verified_email,omitempty"`
+	Email         string      `json:"email,omitempty"`
+	UserID        int         `json:"uid,omitempty"`
+	Scope         string      `json:"scope,omitempty"`
+	Cognito       string      `json:"cognito,omitempty"`
+	VerifiedEmail bool        `json:"verified_email,omitempty"`
+	Data          interface{} `json:"dat,omitempty"`
 	jwt.RegisteredClaims
 }
 

@@ -76,8 +76,6 @@ func getTarget(target string) reflect.Type {
 		result = reflect.TypeOf(cred.SHA1{})
 	case "ssh":
 		result = reflect.TypeOf(cred.SSH{})
-	case "rsa":
-		result = reflect.TypeOf(cred.RSA{})
 	case "generic":
 		result = reflect.TypeOf(cred.Generic{})
 	}

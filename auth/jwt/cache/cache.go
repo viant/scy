@@ -1,4 +1,4 @@
-package jwt
+package cache
 
 import (
 	"context"
@@ -22,6 +22,7 @@ type (
 	}
 )
 
+//Fetch return from cache or get token from URL
 func (c *Cache) Fetch(ctx context.Context, certURL string) (jwk.Set, error) {
 	c.mux.RLock()
 	anEntry, ok := c.sets[certURL]
@@ -42,7 +43,7 @@ func (c *Cache) Fetch(ctx context.Context, certURL string) (jwk.Set, error) {
 	return anEntry.set, nil
 }
 
-func NewCache() *Cache {
+func New() *Cache {
 	return &Cache{
 		sets: map[string]*entry{},
 	}
