@@ -5,7 +5,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/viant/scy"
 	sjwt "github.com/viant/scy/auth/jwt"
-	"github.com/viant/scy/auth/jwt/singer"
 	_ "github.com/viant/scy/kms/blowfish"
 	"github.com/viant/toolbox"
 	"path"
@@ -18,7 +17,7 @@ func TestNew(t *testing.T) {
 	baseLocation := toolbox.CallerDirectory(3)
 	var testCases = []struct {
 		description    string
-		config         *singer.Config
+		config         *signer.Config
 		verifierConfig *Config
 		expiry         time.Duration
 		data           interface{}
@@ -27,7 +26,7 @@ func TestNew(t *testing.T) {
 	}{
 		{
 			description:    "valid token",
-			config:         &singer.Config{RSA: &scy.Resource{URL: path.Join(baseLocation, "testdata/private.scy"), Key: "blowfish://default"}},
+			config:         &signer.Config{RSA: &scy.Resource{URL: path.Join(baseLocation, "testdata/private.scy"), Key: "blowfish://default"}},
 			verifierConfig: &Config{RSA: &scy.Resource{URL: path.Join(baseLocation, "testdata/public.scy"), Key: "blowfish://default"}},
 			expiry:         time.Hour,
 			isValid:        true,
@@ -40,7 +39,7 @@ func TestNew(t *testing.T) {
 		},
 		{
 			description:    "expired token",
-			config:         &singer.Config{RSA: &scy.Resource{URL: path.Join(baseLocation, "testdata/private.scy"), Key: "blowfish://default"}},
+			config:         &signer.Config{RSA: &scy.Resource{URL: path.Join(baseLocation, "testdata/private.scy"), Key: "blowfish://default"}},
 			verifierConfig: &Config{RSA: &scy.Resource{URL: path.Join(baseLocation, "testdata/public.scy"), Key: "blowfish://default"}},
 			expiry:         -time.Hour,
 			isValid:        false,
@@ -55,7 +54,7 @@ func TestNew(t *testing.T) {
 
 	for _, testCase := range testCases {
 		ctx := context.Background()
-		srv := singer.New(testCase.config)
+		srv := signer.New(testCase.config)
 		err := srv.Init(ctx)
 		assert.Nil(t, err, testCase.description)
 		tokenString, err := srv.Create(testCase.expiry, testCase.data)

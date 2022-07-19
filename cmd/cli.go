@@ -9,6 +9,8 @@ import (
 	"github.com/jessevdk/go-flags"
 	"github.com/viant/afs"
 	"github.com/viant/scy"
+	"github.com/viant/scy/auth/jwt/signer"
+	"github.com/viant/scy/auth/jwt/verifier"
 	"github.com/viant/scy/cred"
 	"github.com/viant/toolbox"
 	"golang.org/x/crypto/ssh/terminal"
@@ -32,10 +34,68 @@ func Run(args []string) {
 		err = Secure(options)
 	case "reveal":
 		err = Reveal(options)
+	case "signJwt":
+		err = SignJwtClaim(options)
+	case "verifyJwt":
+		err = VerifyJwtClaim(options)
+
 	}
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func VerifyJwtClaim(options *Options) error {
+	jwtverifier := verifier.New(&verifier.Config{RSA: &scy.Resource{
+		URL: options.RSAKey,
+		Key: options.Key,
+	}})
+
+	if err := jwtverifier.Init(context.Background()); err != nil {
+		return err
+	}
+	fs := afs.New()
+	jwtTokenString, err := fs.DownloadWithURL(context.Background(), options.SourceURL)
+	if err != nil {
+		return err
+	}
+	jwtClaim, err := jwtverifier.VerifyClaims(context.Background(), string(jwtTokenString))
+	if err != nil {
+		return err
+	}
+	data, _ := json.Marshal(jwtClaim)
+	fmt.Printf("JWT CLAIM: %s\n", data)
+	return nil
+}
+
+func SignJwtClaim(options *Options) error {
+	jwtSigner := signer.New(&signer.Config{RSA: &scy.Resource{
+		URL: options.RSAKey,
+		Key: options.Key,
+	}})
+
+	if err := jwtSigner.Init(context.Background()); err != nil {
+		return err
+	}
+	fs := afs.New()
+	var content = map[string]interface{}{}
+	data, err := fs.DownloadWithURL(context.Background(), options.SourceURL)
+	if err != nil {
+		return err
+	}
+	if err = json.Unmarshal(data, &content); err != nil {
+		return fmt.Errorf("invalid JSON content: %v", err)
+	}
+	expiry := time.Duration(options.ExpirySec) * time.Second
+	if expiry == 0 {
+		expiry = time.Hour
+	}
+	token, err := jwtSigner.Create(expiry, content)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("JWT TOKEN: %s\n", token)
+	return nil
 }
 
 //Reveal reveals secret
