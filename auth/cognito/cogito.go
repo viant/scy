@@ -104,7 +104,6 @@ func New(ctx context.Context, config *Config) (*Service, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	certURL := fmt.Sprintf("https://cognito-idp.%v.amazonaws.com/%v/.well-known/jwks.json", config.Client.Region, config.PoolID)
 	validator := verifier.New(&verifier.Config{CertURL: certURL})
 	if err = validator.Init(ctx); err != nil {
