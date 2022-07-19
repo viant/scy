@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/viant/scy"
+	sjwt "github.com/viant/scy/auth/jwt"
 	"github.com/viant/scy/auth/jwt/cache"
 )
 
@@ -20,6 +21,14 @@ func (s *Service) Validate(ctx context.Context, tokenString string) (*jwt.Token,
 		return s.validateWithCert(ctx, tokenString)
 	}
 	return s.validateWithPublicKey(tokenString)
+}
+
+func (s *Service) VerifyClaims(ctx context.Context, tokenString string) (*sjwt.Claims, error) {
+	token, err := s.Validate(ctx, tokenString)
+	if err != nil {
+		return nil, err
+	}
+	return sjwt.NewClaim(token)
 }
 
 func (s *Service) validateWithPublicKey(tokenString string) (*jwt.Token, error) {
