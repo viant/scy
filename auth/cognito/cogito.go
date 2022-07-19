@@ -12,6 +12,7 @@ import (
 	"github.com/viant/scy"
 	"github.com/viant/scy/auth"
 	sjwt "github.com/viant/scy/auth/jwt"
+	"github.com/viant/scy/auth/jwt/verifier"
 	"github.com/viant/scy/cred"
 	"reflect"
 	"time"
@@ -20,9 +21,9 @@ import (
 type (
 	//Service represents cognito client
 	Service struct {
-		client *cognitoidentityprovider.CognitoIdentityProvider
-		config *Config
-		cache  *sjwt.Cache
+		client   *cognitoidentityprovider.CognitoIdentityProvider
+		config   *Config
+		verifier *verifier.Service
 	}
 )
 
@@ -69,8 +70,8 @@ func (s *Service) InitiateBasicAuth(username, password string) (*auth.Token, err
 
 //VerifyIdentity verifies identity token, it returns jwt claims
 func (s *Service) VerifyIdentity(ctx context.Context, rawToken string) (*sjwt.Claims, error) {
-	certURL := fmt.Sprintf("https://cognito-idp.%v.amazonaws.com/%v/.well-known/jwks.json", s.config.Client.Region, s.config.PoolID)
-	token, err := sjwt.VerifyToken(ctx, rawToken, certURL, s.cache)
+
+	token, err := s.verifier.Validate(ctx, rawToken)
 	if err != nil {
 		return nil, err
 	}
@@ -103,9 +104,15 @@ func New(ctx context.Context, config *Config) (*Service, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	certURL := fmt.Sprintf("https://cognito-idp.%v.amazonaws.com/%v/.well-known/jwks.json", config.Client.Region, config.PoolID)
+	validator := verifier.New(&verifier.Config{CertURL: certURL})
+	if err = validator.Init(ctx); err != nil {
+		return nil, err
+	}
 	return &Service{
-		client: cognitoidentityprovider.New(sess),
-		config: config,
-		cache:  sjwt.NewCache(),
+		client:   cognitoidentityprovider.New(sess),
+		config:   config,
+		verifier: validator,
 	}, nil
 }

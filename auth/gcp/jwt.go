@@ -3,6 +3,7 @@ package gcp
 import (
 	"context"
 	sjwt "github.com/viant/scy/auth/jwt"
+	"github.com/viant/scy/auth/jwt/verifier"
 	"strings"
 )
 
@@ -11,14 +12,14 @@ const (
 	authType = "Bearer "
 )
 
-var keys = sjwt.NewCache()
+var verifierService = verifier.New(&verifier.Config{CertURL: certURL})
 
 //JwtClaims extract token info, but it does not verify token
 func JwtClaims(ctx context.Context, tokenString string) (*sjwt.Claims, error) {
 	if strings.HasPrefix(tokenString, authType) {
 		tokenString = tokenString[len(authType):]
 	}
-	token, err := sjwt.VerifyToken(ctx, tokenString, certURL, keys)
+	token, err := verifierService.Validate(ctx, tokenString)
 	if err != nil {
 		return nil, err
 	}
