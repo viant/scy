@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/viant/afs"
 	"github.com/viant/afs/file"
 	"github.com/viant/scy/cred"
@@ -44,6 +45,9 @@ func (s *Service) store(ctx context.Context, secret *Secret, err error, payload 
 	shallCipher := key != nil
 	if secret.Target != nil {
 		if securable, ok := secret.Target.(kms.Securable); ok {
+			if key == nil {
+				return fmt.Errorf("enc key is requried by target: %T", secret.Target)
+			}
 			shallCipher = false
 			if err = securable.Cipher(ctx, key); err != nil {
 				return err
@@ -132,7 +136,10 @@ func (s *Service) load(ctx context.Context, resource *Resource, data []byte) (*S
 		if err = secret.Decode(value); err != nil {
 			return nil, err
 		}
-		if securable, ok := value.(kms.Securable); ok && key != nil {
+		if securable, ok := value.(kms.Securable); ok {
+			if key == nil {
+				return nil, fmt.Errorf("enc key is requried by target: %T", secret.Target)
+			}
 			shallDecipher = false
 			if err = securable.Decipher(ctx, key); err != nil {
 				return nil, err
