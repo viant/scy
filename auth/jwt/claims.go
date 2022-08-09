@@ -10,6 +10,10 @@ import (
 type Claims struct {
 	Email         string      `json:"email,omitempty"`
 	UserID        int         `json:"uid,omitempty"`
+	FirstName     string      `json:"fname,omitempty"`
+	LastName      string      `json:"lname,omitempty"`
+	AccountName   string      `json:"acct,omitempty"`
+	AccountId     int         `json:"acctid,omitempty"`
 	Scope         string      `json:"scope,omitempty"`
 	Cognito       string      `json:"cognito,omitempty"`
 	VerifiedEmail bool        `json:"verified_email,omitempty"`
