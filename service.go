@@ -137,12 +137,11 @@ func (s *Service) load(ctx context.Context, resource *Resource, data []byte) (*S
 			return nil, err
 		}
 		if securable, ok := value.(kms.Securable); ok {
-			if key == nil {
-				return nil, fmt.Errorf("enc key is requried by target: (%T) %v", value, resource.URL)
-			}
-			shallDecipher = false
-			if err = securable.Decipher(ctx, key); err != nil {
-				return nil, err
+			if key != nil {
+				shallDecipher = false
+				if err = securable.Decipher(ctx, key); err != nil {
+					return nil, err
+				}
 			}
 		}
 		secret.Target = value
