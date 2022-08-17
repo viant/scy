@@ -138,12 +138,12 @@ func (s *Service) load(ctx context.Context, resource *Resource, data []byte) (*S
 		}
 		if securable, ok := value.(kms.Securable); ok {
 			_, isGeneric := value.(*cred.Generic)
+			shallDecipher = false
 			if key == nil {
 				if !isGeneric {
 					return nil, fmt.Errorf("key is required by type %T: %v", value, resource.URL)
 				}
 			} else {
-				shallDecipher = false
 				if err = securable.Decipher(ctx, key); err != nil {
 					return nil, err
 				}
