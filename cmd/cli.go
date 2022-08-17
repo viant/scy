@@ -102,7 +102,11 @@ func SignJwtClaim(options *Options) error {
 func Reveal(options *Options) error {
 	srv := scy.New()
 	var target interface{} = nil
-	if targetType := getTarget(options.Target); targetType != nil {
+	targetType, err := cred.TargetType(options.Target)
+	if err != nil {
+		return err
+	}
+	if targetType != nil {
 		target = targetType
 	}
 	resource := scy.NewResource(target, options.SourceURL, options.Key)
@@ -123,34 +127,23 @@ func Reveal(options *Options) error {
 	return nil
 }
 
-func getTarget(target string) reflect.Type {
-	var result reflect.Type
-	switch target {
-	case "aws":
-		result = reflect.TypeOf(cred.Generic{})
-	case "basic":
-		result = reflect.TypeOf(cred.Basic{})
-	case "jwt":
-		result = reflect.TypeOf(cred.JwtConfig{})
-	case "sha1":
-		result = reflect.TypeOf(cred.SHA1{})
-	case "ssh":
-		result = reflect.TypeOf(cred.SSH{})
-	case "generic":
-		result = reflect.TypeOf(cred.Generic{})
-	}
-	return result
-}
-
 //Secure secure secrets
 func Secure(options *Options) error {
 	data, err := readSource(options)
 	if err != nil {
 		log.Fatal(err)
 	}
-	resource := scy.NewResource(getTarget(options.Target), options.DestURL, options.Key)
+	targetType, err := cred.TargetType(options.Target)
+	if err != nil {
+		return err
+	}
+	var target reflect.Type
+	if targetType != nil {
+		target = targetType
+	}
+	resource := scy.NewResource(target, options.DestURL, options.Key)
 	var secret *scy.Secret
-	if target := getTarget(options.Target); target != nil {
+	if target != nil {
 		instance := reflect.New(target).Interface()
 		if err := json.Unmarshal(data, instance); err != nil {
 			return err
