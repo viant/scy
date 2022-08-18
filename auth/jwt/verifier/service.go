@@ -31,6 +31,14 @@ func (s *Service) VerifyClaims(ctx context.Context, tokenString string) (*sjwt.C
 	return sjwt.NewClaim(token)
 }
 
+func (s *Service) ValidaToken(ctx context.Context, tokenString string) (*jwt.Token, error) {
+	token, err := s.Validate(ctx, tokenString)
+	if err != nil {
+		return nil, err
+	}
+	return token, nil
+}
+
 func (s *Service) validateWithPublicKey(tokenString string) (*jwt.Token, error) {
 	key, err := jwt.ParseRSAPublicKeyFromPEM(s.key)
 	if err != nil {
