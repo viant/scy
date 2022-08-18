@@ -9,7 +9,7 @@ import (
 //Claims represents JWT claim
 type Claims struct {
 	Email         string      `json:"email,omitempty"`
-	UserID        int         `json:"uid,omitempty"`
+	UserID        int         `json:"user_id,omitempty"`
 	FirstName     string      `json:"first_name,omitempty"`
 	LastName      string      `json:"last_name,omitempty"`
 	AccountName   string      `json:"account_name,omitempty"`
