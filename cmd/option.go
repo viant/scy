@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/viant/scy/cred"
 )
 
 type Options struct {
@@ -16,9 +17,10 @@ type Options struct {
 }
 
 func (o *Options) Validate() error {
+	tagetType, _ := cred.TargetType(o.Target)
 	switch o.Mode {
 	case "secure":
-		if getTarget(o.Target) != nil && o.SourceURL == "" {
+		if tagetType != nil && o.SourceURL == "" {
 			return fmt.Errorf("src was empty")
 		}
 		if o.DestURL == "" {
