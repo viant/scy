@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/viant/toolbox/data"
+	"net/url"
 )
 
 //Secret represent secret
@@ -48,6 +49,8 @@ func (s *Secret) Expand(text string) string {
 			}
 		}
 	}
+	replacement["resourceURL"] = s.Resource.URL
+	replacement["resourceURLEnc"] = url.QueryEscape(s.Resource.URL)
 	return replacement.ExpandAsText(text)
 }
 
