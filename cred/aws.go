@@ -15,6 +15,7 @@ type Aws struct {
 	EncryptedSecret string `json:",omitempty"`
 	Token           string `json:",omitempty"`
 	Region          string `json:",omitempty"`
+	RoleArn         string `json:",omitempty"`
 }
 
 //Cipher ciphers password to encrypted password, clears password after that
