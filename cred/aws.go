@@ -13,6 +13,7 @@ type Aws struct {
 	Key             string `json:",omitempty"`
 	Secret          string `json:",omitempty"`
 	EncryptedSecret string `json:",omitempty"`
+	Token           string `json:",omitempty"`
 	Region          string `json:",omitempty"`
 }
 
