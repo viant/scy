@@ -8,15 +8,22 @@ import (
 )
 
 //Aws represents AWS credentials
-type Aws struct {
-	Id              string `json:",omitempty"`
-	Key             string `json:",omitempty"`
-	Secret          string `json:",omitempty"`
-	EncryptedSecret string `json:",omitempty"`
-	Token           string `json:",omitempty"`
-	Region          string `json:",omitempty"`
-	RoleArn         string `json:",omitempty"`
-}
+type (
+	Aws struct {
+		Endpoint        string      `json:",omitempty"`
+		Region          string      `json:",omitempty"`
+		Key             string      `json:",omitempty"` //KeyID
+		Secret          string      `json:",omitempty"` //KeySecret
+		Token           string      `json:",omitempty"`
+		EncryptedSecret string      `json:",omitempty"`
+		Session         *AwsSession `json:",omitempty"`
+	}
+
+	AwsSession struct {
+		RoleArn string `json:",omitempty"`
+		Name    string `json:",omitempty"`
+	}
+)
 
 //Cipher ciphers password to encrypted password, clears password after that
 func (b *Aws) Cipher(ctx context.Context, key *kms.Key) error {

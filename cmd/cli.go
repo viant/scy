@@ -114,6 +114,7 @@ func Reveal(options *Options) error {
 	if err != nil {
 		return err
 	}
+	toolbox.Dump(secret)
 	if !secret.IsPlain && secret.Target != nil {
 		aMap := map[string]interface{}{}
 		toolbox.DefaultConverter.AssignConverted(&aMap, secret.Target)

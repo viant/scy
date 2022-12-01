@@ -21,7 +21,8 @@ func TargetType(target string) (reflect.Type, error) {
 		result = reflect.TypeOf(SSH{})
 	case "generic":
 		result = reflect.TypeOf(Generic{})
-	case "":
+	case "", "raw":
+
 	default:
 		return nil, fmt.Errorf("unknown secret target: %v, avail: [aws, basic, jwt, sha1, ,ssh, generic]", target)
 	}

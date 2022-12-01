@@ -115,7 +115,6 @@ func (s *Service) load(ctx context.Context, resource *Resource, data []byte) (*S
 			return nil, err
 		}
 	}
-
 	key, cipher, err := s.loadKeyCipher(resource.Key)
 	if err != nil {
 		return nil, err
@@ -124,7 +123,7 @@ func (s *Service) load(ctx context.Context, resource *Resource, data []byte) (*S
 		Resource: resource,
 		payload:  data,
 	}
-	isJSON := json.Valid(data)
+	isJSON := isJson(data)
 	if resource.Name == "" && resource.target == nil {
 		if isJSON {
 			resource.target = reflect.TypeOf(cred.Generic{})
@@ -155,7 +154,7 @@ func (s *Service) load(ctx context.Context, resource *Resource, data []byte) (*S
 		if data, err = cipher.Decrypt(ctx, key, data); err != nil {
 			return nil, err
 		}
-		if isJSON = json.Valid(data); isJSON {
+		if isJSON = isJson(data); isJSON {
 			if resource.target != nil && isJSON {
 				value := reflect.New(resource.target).Interface()
 				if err = json.Unmarshal(data, value); err == nil {
@@ -166,13 +165,17 @@ func (s *Service) load(ctx context.Context, resource *Resource, data []byte) (*S
 	}
 	secret.IsPlain = !isJSON
 	secret.payload = data
-
 	if secret.Target == nil {
 		secret.Target = string(data)
 	} else {
 		secret.payload, _ = json.Marshal(secret.Target)
 	}
 	return secret, nil
+}
+
+func isJson(data []byte) bool {
+	data = bytes.TrimSpace(data)
+	return json.Valid(data) && len(data) > 0 && (data[0] == '{' || data[0] == '[')
 }
 
 //New creates a new secret service
