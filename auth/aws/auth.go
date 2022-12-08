@@ -34,7 +34,7 @@ func NewConfig(ctx context.Context, awsCred *cred.Aws) (*aws.Config, error) {
 		options = append(options, option)
 	} else if awsCred.Key != "" {
 		options = append(options, config.WithCredentialsProvider(credentials.StaticCredentialsProvider{
-			Value: aws.Credentials{AccessKeyID: awsCred.Key, SecretAccessKey: awsCred.Key, SessionToken: awsCred.Token},
+			Value: aws.Credentials{AccessKeyID: awsCred.Key, SecretAccessKey: awsCred.Secret, SessionToken: awsCred.Token},
 		}))
 	}
 	cfg, err := config.LoadDefaultConfig(context.TODO(), options...)
