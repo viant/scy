@@ -47,6 +47,9 @@ func (b *Aws) Cipher(ctx context.Context, key *kms.Key) error {
 //Decipher deciphers EncryptedPassword or returns error
 func (b *Aws) Decipher(ctx context.Context, key *kms.Key) error {
 	if len(b.EncryptedSecret) == 0 {
+		if b.Secret != "" {
+			return nil
+		}
 		return fmt.Errorf("encryptedSecret was empty")
 	}
 	cipher, err := kms.Lookup(key.Scheme)
