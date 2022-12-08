@@ -10,7 +10,7 @@ func TargetType(target string) (reflect.Type, error) {
 	var result reflect.Type
 	switch target {
 	case "aws":
-		result = reflect.TypeOf(Generic{})
+		result = reflect.TypeOf(Aws{})
 	case "basic":
 		result = reflect.TypeOf(Basic{})
 	case "jwt":
