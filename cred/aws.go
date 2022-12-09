@@ -10,6 +10,7 @@ import (
 //Aws represents AWS credentials
 type (
 	Aws struct {
+		Id              string      `json:",omitempty"`
 		Endpoint        string      `json:",omitempty"`
 		Region          string      `json:",omitempty"`
 		Key             string      `json:",omitempty"` //KeyID
