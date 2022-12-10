@@ -23,7 +23,7 @@ func NewConfig(ctx context.Context, awsCred *cred.Aws) (*aws.Config, error) {
 	if awsCred.Endpoint != "" {
 		options = append(options, config.WithEndpointResolverWithOptions(aws.EndpointResolverWithOptionsFunc(
 			func(service, region string, options ...interface{}) (aws.Endpoint, error) {
-				return aws.Endpoint{URL: awsCred.Endpoint}, nil
+				return aws.Endpoint{URL: awsCred.Endpoint, SigningRegion: awsCred.Region}, nil
 			})))
 	}
 	if awsCred.Session != nil && awsCred.Session.RoleArn != "" {
