@@ -9,6 +9,7 @@ import (
 
 //Basic represents basic credentials
 type Basic struct {
+	Endpoint          string `json:",omitempty"`
 	Email             string `json:",omitempty"`
 	Username          string `json:",omitempty"`
 	Password          string `json:",omitempty"`
