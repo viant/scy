@@ -3,6 +3,9 @@ package cmd
 import (
 	"fmt"
 	"github.com/viant/scy/cred"
+	"os"
+	"path"
+	"strings"
 )
 
 type Options struct {
@@ -48,4 +51,20 @@ func (o *Options) Validate() error {
 		return fmt.Errorf("mode was empty")
 	}
 	return nil
+}
+
+func (o *Options) Init() {
+	o.SourceURL = normalizeLocation(o.SourceURL)
+	o.DestURL = normalizeLocation(o.DestURL)
+}
+
+func normalizeLocation(location string) string {
+	if strings.HasPrefix(location, "~") {
+		return os.Getenv("HOME") + location[1:]
+	}
+	if !strings.Contains(location, ":/") && !strings.HasPrefix(location, "/") {
+		cwd, _ := os.Getwd()
+		return path.Join(cwd, location)
+	}
+	return location
 }

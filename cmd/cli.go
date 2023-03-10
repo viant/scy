@@ -26,6 +26,7 @@ func Run(args []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	options.Init()
 	if err := options.Validate(); err != nil {
 		log.Fatal(err)
 	}
