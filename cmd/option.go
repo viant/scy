@@ -12,6 +12,7 @@ type Options struct {
 	Mode      string `short:"m" long:"mode" choice:"secure"  choice:"reveal" choice:"signJwt" choice:"verifyJwt"`
 	SourceURL string `short:"s" long:"src" description:"source location"`
 	RSAKey    string `short:"r" long:"rsa" description:"private/public key location"`
+	HMacKey   string `short:"m" long:"hmac" description:"hmac key location (base64 encoded)"`
 	DestURL   string `short:"d" long:"dest" description:"dest location"`
 	ExpirySec int    `short:"e" long:"expiry" description:"expiry TTL in sec"`
 
@@ -34,15 +35,15 @@ func (o *Options) Validate() error {
 			return fmt.Errorf("src was empty")
 		}
 	case "signJwt":
-		if o.RSAKey == "" {
-			return fmt.Errorf("RSAKey was empty")
+		if o.RSAKey == "" && o.HMacKey == "" {
+			return fmt.Errorf("RSAKey/HMacKey were empty")
 		}
 		if o.SourceURL == "" {
 			return fmt.Errorf("src was empty")
 		}
 	case "verifyJwt":
-		if o.RSAKey == "" {
-			return fmt.Errorf("RSAKey was empty")
+		if o.RSAKey == "" && o.HMacKey == "" {
+			return fmt.Errorf("RSAKey/HMacKey was empty")
 		}
 		if o.SourceURL == "" {
 			return fmt.Errorf("src was empty")

@@ -50,6 +50,9 @@ func VerifyJwtClaim(options *Options) error {
 	jwtverifier := verifier.New(&verifier.Config{RSA: &scy.Resource{
 		URL: options.RSAKey,
 		Key: options.Key,
+	}, HMAC: &scy.Resource{
+		URL: options.HMacKey,
+		Key: options.Key,
 	}})
 
 	if err := jwtverifier.Init(context.Background()); err != nil {
@@ -72,6 +75,9 @@ func VerifyJwtClaim(options *Options) error {
 func SignJwtClaim(options *Options) error {
 	jwtSigner := signer.New(&signer.Config{RSA: &scy.Resource{
 		URL: options.RSAKey,
+		Key: options.Key,
+	}, HMAC: &scy.Resource{
+		URL: options.HMacKey,
 		Key: options.Key,
 	}})
 

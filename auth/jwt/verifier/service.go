@@ -2,6 +2,7 @@ package verifier
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/viant/scy"
@@ -11,6 +12,7 @@ import (
 
 type Service struct {
 	key    []byte
+	hmac   []byte
 	cache  *cache.Cache
 	config *Config
 }
@@ -40,15 +42,15 @@ func (s *Service) ValidaToken(ctx context.Context, tokenString string) (*jwt.Tok
 }
 
 func (s *Service) validateWithPublicKey(tokenString string) (*jwt.Token, error) {
-	key, err := jwt.ParseRSAPublicKeyFromPEM(s.key)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load public key: %w", err)
-	}
+
 	token, err := jwt.Parse(tokenString, func(jwtToken *jwt.Token) (interface{}, error) {
-		if _, ok := jwtToken.Method.(*jwt.SigningMethodRSA); !ok {
-			return nil, fmt.Errorf("unexpected method: %s", jwtToken.Header["alg"])
+		if _, ok := jwtToken.Method.(*jwt.SigningMethodRSA); ok {
+			return jwt.ParseRSAPublicKeyFromPEM(s.key)
 		}
-		return key, nil
+		if _, ok := jwtToken.Method.(*jwt.SigningMethodHMAC); ok {
+			return s.hmac, nil
+		}
+		return nil, fmt.Errorf("unexpected method: %T %s ", jwtToken.Method, jwtToken.Header["alg"])
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse token: %w", err)
@@ -88,6 +90,16 @@ func (s *Service) Init(ctx context.Context) error {
 			return err
 		}
 		s.key = []byte(secret.String())
+	}
+	if s.config.HMAC != nil {
+		scySrv := scy.New()
+		secret, err := scySrv.Load(ctx, s.config.HMAC)
+		if err != nil {
+			return err
+		}
+		if s.hmac, err = base64.StdEncoding.DecodeString(secret.String()); err != nil {
+			s.hmac = []byte(secret.String())
+		}
 	}
 	return nil
 }
