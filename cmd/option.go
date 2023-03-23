@@ -12,7 +12,7 @@ type Options struct {
 	Mode      string `short:"m" long:"mode" choice:"secure"  choice:"reveal" choice:"signJwt" choice:"verifyJwt"`
 	SourceURL string `short:"s" long:"src" description:"source location"`
 	RSAKey    string `short:"r" long:"rsa" description:"private/public key location"`
-	HMacKey   string `short:"m" long:"hmac" description:"hmac key location (base64 encoded)"`
+	HMacKey   string `short:"a" long:"hmac" description:"hmac key location (base64 encoded)"`
 	DestURL   string `short:"d" long:"dest" description:"dest location"`
 	ExpirySec int    `short:"e" long:"expiry" description:"expiry TTL in sec"`
 

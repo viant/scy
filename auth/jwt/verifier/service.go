@@ -83,7 +83,7 @@ func (s *Service) validateWithCert(ctx context.Context, tokenString string) (*jw
 }
 
 func (s *Service) Init(ctx context.Context) error {
-	if s.config.RSA != nil {
+	if s.config.RSA != nil && s.config.RSA.URL != "" {
 		scySrv := scy.New()
 		secret, err := scySrv.Load(ctx, s.config.RSA)
 		if err != nil {
@@ -91,7 +91,7 @@ func (s *Service) Init(ctx context.Context) error {
 		}
 		s.key = []byte(secret.String())
 	}
-	if s.config.HMAC != nil {
+	if s.config.HMAC != nil && s.config.HMAC.URL != "" {
 		scySrv := scy.New()
 		secret, err := scySrv.Load(ctx, s.config.HMAC)
 		if err != nil {
