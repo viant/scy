@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/viant/afs"
 	"github.com/viant/afs/file"
+	"github.com/viant/afs/storage"
 	"github.com/viant/scy/cred"
 	"github.com/viant/scy/kms"
 	"os"
@@ -63,7 +64,11 @@ func (s *Service) store(ctx context.Context, secret *Secret, err error, payload 
 		}
 	}
 
-	return s.fs.Upload(ctx, secret.URL, file.DefaultFileOsMode, bytes.NewReader(payload))
+	var options []storage.Option
+	if secret.Resource != nil && len(secret.Resource.Options) > 0 {
+		options = secret.Resource.Options
+	}
+	return s.fs.Upload(ctx, secret.URL, file.DefaultFileOsMode, bytes.NewReader(payload), options...)
 }
 
 func (s *Service) loadKeyCipher(resourceKey string) (*kms.Key, kms.Cipher, error) {
@@ -105,7 +110,7 @@ func (s *Service) load(ctx context.Context, resource *Resource, data []byte) (*S
 		resource.Init()
 		for i := 0; i < resource.MaxRetry; i++ {
 			tCtx, cancel := context.WithTimeout(ctx, resource.Timeout())
-			data, err = s.fs.DownloadWithURL(tCtx, resource.URL)
+			data, err = s.fs.DownloadWithURL(tCtx, resource.URL, resource.Options...)
 			cancel()
 			if err == nil {
 				break

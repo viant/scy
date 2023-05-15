@@ -2,6 +2,7 @@ package scy
 
 import (
 	"fmt"
+	"github.com/viant/afs/storage"
 	"reflect"
 	"time"
 )
@@ -14,6 +15,7 @@ type Resource struct {
 	MaxRetry  int    `json:",omitempty"`
 	TimeoutMs int    `json:",omitempty"`
 	Fallback  *Resource
+	Options   []storage.Option
 	Data      []byte
 	target    reflect.Type
 }
