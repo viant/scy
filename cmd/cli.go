@@ -73,14 +73,20 @@ func VerifyJwtClaim(options *Options) error {
 }
 
 func SignJwtClaim(options *Options) error {
-	jwtSigner := signer.New(&signer.Config{RSA: &scy.Resource{
-		URL: options.RSAKey,
-		Key: options.Key,
-	}, HMAC: &scy.Resource{
-		URL: options.HMacKey,
-		Key: options.Key,
-	}})
 
+	cfg := &signer.Config{}
+	if options.HMacKey != "" {
+		cfg.HMAC = &scy.Resource{
+			URL: options.HMacKey,
+			Key: options.Key,
+		}
+	} else if options.RSAKey != "" {
+		cfg.RSA = &scy.Resource{
+			URL: options.RSAKey,
+			Key: options.Key,
+		}
+	}
+	jwtSigner := signer.New(cfg)
 	if err := jwtSigner.Init(context.Background()); err != nil {
 		return err
 	}
