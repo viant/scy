@@ -2,7 +2,7 @@ init:
   target:
     URL: ssh://127.0.0.1
     Credentials: localhost
-  appPath: $WorkingDirectory(./../..)
+  appPath: $WorkingDirectory(./..)
   Ver: $Cat(${appPath}/Version)
 
 pipeline:
@@ -15,16 +15,16 @@ pipeline:
     target: $target
     checkError: true
     commands:
-      - cd ${appPath}/cmd/scy
+      - cd ${appPath}/scy
       - export GOOS=linux
       - export GOARCH=amd64
       - go build -ldflags="-X 'main.Version=${Ver}'" -trimpath
-      - tar cvzf scy_${Ver}_linux_amd64.tar.gz scy
+      - tar cvzf scy_linux_amd64_${Ver}.tar.gz scy
       - export GOOS=darwin
       - go build -ldflags="-X 'main.Version=${Ver}'" -trimpath
-      - tar cvzf scy_${Ver}_darwin_amd64.tar.gz scy
+      - tar cvzf scy_darwin_amd64_${Ver}.tar.gz scy
       - export GOOS=darwin
       - export GOARCH=arm64
       - go build -ldflags="-X 'main.Version=${Ver}'" -trimpath
-      - tar cvzf scy_${Ver}_darwin_arm64.tar.gz scy
+      - tar cvzf scy_darwin_arm64_${Ver}.tar.gz scy
    
