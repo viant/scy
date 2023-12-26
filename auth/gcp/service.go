@@ -12,7 +12,7 @@ import (
 	"github.com/viant/afs/file"
 	"github.com/viant/scy/auth"
 	"github.com/viant/scy/auth/browser"
-	"github.com/viant/scy/auth/gcp/endpoint"
+	"github.com/viant/scy/auth/endpoint"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/idtoken"
@@ -30,7 +30,7 @@ func (s *Service) Config(ctx context.Context, scopes ...string) *oauth2.Config {
 	return s.client.Config("", scopes...)
 }
 
-//AuthClient returns auth  HTTP client
+// AuthClient returns auth  HTTP client
 func (s *Service) AuthClient(ctx context.Context, scopes ...string) (*http.Client, error) {
 	if client, _ := google.DefaultClient(ctx, scopes...); client != nil {
 		return client, nil
@@ -43,7 +43,7 @@ func (s *Service) AuthClient(ctx context.Context, scopes ...string) (*http.Clien
 	return oauth2.NewClient(ctx, tokenSource), nil
 }
 
-//IDClient returns identity token HTTP client
+// IDClient returns identity token HTTP client
 func (s *Service) IDClient(ctx context.Context, audience string, scopes ...string) (*http.Client, error) {
 	if len(scopes) == 0 {
 		scopes = Scopes

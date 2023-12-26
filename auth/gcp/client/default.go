@@ -19,7 +19,7 @@ var (
 
 var sdkClient *gcp.Client
 
-//NewGCloud return Google Cloud SDK Client
+// NewGCloud return Google Cloud SDK Client
 func NewGCloud() *gcp.Client {
 	if sdkClient != nil {
 		return sdkClient
@@ -30,7 +30,7 @@ func NewGCloud() *gcp.Client {
 
 var scyClient *gcp.Client
 
-//NewScy return Scy Client
+// NewScy return Scy Client
 func NewScy() *gcp.Client {
 	if scyClient != nil {
 		return scyClient
@@ -55,5 +55,6 @@ func loadEncryptedClient(enc []byte) (*gcp.Client, error) {
 	if !ok {
 		return nil, fmt.Errorf("expected: %T, but had: %T", result, secret.Target)
 	}
+
 	return result, nil
 }
