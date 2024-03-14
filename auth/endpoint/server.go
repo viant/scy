@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-//Server represent an auth callback endpoint
+// Server represent an auth callback endpoint
 type Server struct {
 	Port     int
 	err      error
@@ -18,24 +18,24 @@ type Server struct {
 	*httpHandler
 }
 
-//Close closes endpoint
+// Close closes endpoint
 func (s *Server) Close() {
 	s.httpHandler.done <- true
 }
 
-//Wait waits
+// Wait waits
 func (s *Server) Wait() error {
 	select {
 	case <-s.httpHandler.done:
 		go func() {
 			time.Sleep(3 * time.Second)
-			s.server.Close()
+			_ = s.server.Close()
 		}()
 	}
 	return s.err
 }
 
-//Start starts a endpoint
+// Start starts a endpoint
 func (s *Server) Start() {
 	err := s.server.Serve(s.listener)
 	if err != nil {
@@ -47,7 +47,7 @@ func (s *Server) Start() {
 	}
 }
 
-//New creates an auth callback endpoint
+// New creates an auth callback endpoint
 func New() (*Server, error) {
 	result := &Server{httpHandler: newHttpHandler()}
 
