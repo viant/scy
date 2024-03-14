@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-//Resource represents a secret config
+// Resource represents a secret config
 type Resource struct {
 	Name      string `json:",omitempty"`
 	URL       string `json:",omitempty"`
@@ -33,7 +33,7 @@ func (r *Resource) Init() {
 	}
 }
 
-//SetTarget sets target type
+// SetTarget sets target type
 func (r *Resource) SetTarget(t reflect.Type) {
 	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
@@ -41,7 +41,7 @@ func (r *Resource) SetTarget(t reflect.Type) {
 	r.target = t
 }
 
-//Validate checks if resource if valid
+// Validate checks if resource if valid
 func (r *Resource) Validate() error {
 	if r == nil {
 		return fmt.Errorf("resource was empty")
@@ -52,7 +52,7 @@ func (r *Resource) Validate() error {
 	return nil
 }
 
-//NewResource creates a resource
+// NewResource creates a resource
 func NewResource(target interface{}, URL, Key string) *Resource {
 	result := &Resource{
 		URL: URL,

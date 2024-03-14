@@ -18,7 +18,7 @@ require (
 	github.com/viant/afsc v1.9.1
 	github.com/viant/toolbox v0.34.6-0.20221112031702-3e7cdde7f888
 	golang.org/x/crypto v0.21.0
-	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
+	golang.org/x/oauth2 v0.2.0
 	google.golang.org/api v0.74.0
 )
 
@@ -51,6 +51,8 @@ require (
 	github.com/lestrrat-go/iter v1.0.2 // indirect
 	github.com/lestrrat-go/option v1.0.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/viant/xreflect v0.0.0-20230303201326-f50afb0feb0d // indirect
+	github.com/viant/xunsafe v0.9.2 // indirect
 	go.opencensus.io v0.23.0 // indirect
 	golang.org/x/net v0.22.0 // indirect
 	golang.org/x/sys v0.18.0 // indirect
