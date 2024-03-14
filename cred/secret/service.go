@@ -23,6 +23,18 @@ type Service struct {
 	embedFS       *embed.FS
 }
 
+// GetCredentials returns credentials for supplied resource
+func (s *Service) GetCredentials(ctx context.Context, resource string) (*cred.Generic, error) {
+	secret, err := s.Lookup(ctx, Resource(resource))
+	if err != nil {
+		return nil, err
+	}
+	ret, ok := secret.Target.(*cred.Generic)
+	if !ok {
+		return nil, fmt.Errorf("unsupported secret type: %T, expected: %T", secret.Target, ret)
+	}
+	return ret, nil
+}
 func (s *Service) Lookup(ctx context.Context, secret Resource) (*scy.Secret, error) {
 	s.lock.RLock()
 	ret, ok := s.cache[secret.String()]
