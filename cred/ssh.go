@@ -12,7 +12,7 @@ import (
 // SSH represents SSH config
 type SSH struct {
 	Basic
-	PrivateKeyLocation          string `json:",omitempty"`
+	PrivateKeyPath              string `json:",omitempty"`
 	PrivateKey                  []byte `json:",omitempty"`
 	PrivateKeyPassword          string `json:",omitempty"`
 	EncryptedPrivateKeyPassword string `json:",omitempty"`
@@ -42,12 +42,12 @@ func (s *SSH) Config(ctx context.Context) (*ssh.ClientConfig, error) {
 }
 
 func (s *SSH) LoadPrivateKey(ctx context.Context) error {
-	if len(s.PrivateKey) > 0 || len(s.PrivateKeyLocation) == 0 {
+	if len(s.PrivateKey) > 0 || len(s.PrivateKeyPath) == 0 {
 		return nil
 	}
 
 	fs := afs.New()
-	data, err := fs.DownloadWithURL(ctx, s.PrivateKeyLocation)
+	data, err := fs.DownloadWithURL(ctx, s.PrivateKeyPath)
 	if err != nil {
 		return err
 	}
@@ -90,7 +90,7 @@ func (b *SSH) cipherPrivateKey(ctx context.Context, key *kms.Key) error {
 }
 
 func (b *SSH) cipherPrivateKeyPassword(ctx context.Context, key *kms.Key) error {
-	if b.PrivateKeyPassword == "" || b.PrivateKeyLocation != "" { //if location is specified do not encrypt key
+	if b.PrivateKeyPassword == "" || b.PrivateKeyPath != "" { //if location is specified do not encrypt key
 		return nil
 	}
 	cipher, err := kms.Lookup(key.Scheme)
