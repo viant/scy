@@ -53,7 +53,7 @@ func New() (*Server, error) {
 
 	listener, err := net.Listen("tcp", ":0")
 	if err != nil {
-		return nil, errors.Wrapf(err, "failt to create http endpoint")
+		return nil, errors.Wrapf(err, "fail to create http endpoint")
 	}
 	result.listener = listener
 	result.Port = listener.Addr().(*net.TCPAddr).Port
