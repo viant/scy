@@ -13,10 +13,10 @@ import (
 type SSH struct {
 	Basic
 	PrivateKeyPath              string `json:",omitempty"`
-	PrivateKey                  []byte `json:",omitempty"`
+	PrivateKeyPayload           []byte `json:",omitempty"`
 	PrivateKeyPassword          string `json:",omitempty"`
-	EncryptedPrivateKeyPassword string `json:",omitempty"`
 	EncryptedPrivateKey         string `json:",omitempty"`
+	EncryptedPrivateKeyPassword string `json:",omitempty"`
 }
 
 func (s *SSH) Config(ctx context.Context) (*ssh.ClientConfig, error) {
@@ -28,8 +28,8 @@ func (s *SSH) Config(ctx context.Context) (*ssh.ClientConfig, error) {
 	if err != nil {
 		return nil, err
 	}
-	if len(s.PrivateKey) > 0 {
-		authMethod, err := assh.LoadPrivateKeyWithPassphrase(s.PrivateKey, s.PrivateKeyPassword)
+	if len(s.PrivateKeyPayload) > 0 {
+		authMethod, err := assh.LoadPrivateKeyWithPassphrase(s.PrivateKeyPayload, s.PrivateKeyPassword)
 		if err != nil {
 			return nil, err
 		}
@@ -42,7 +42,7 @@ func (s *SSH) Config(ctx context.Context) (*ssh.ClientConfig, error) {
 }
 
 func (s *SSH) LoadPrivateKey(ctx context.Context) error {
-	if len(s.PrivateKey) > 0 || len(s.PrivateKeyPath) == 0 {
+	if len(s.PrivateKeyPayload) > 0 || len(s.PrivateKeyPath) == 0 {
 		return nil
 	}
 
@@ -51,7 +51,7 @@ func (s *SSH) LoadPrivateKey(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	s.PrivateKey = data
+	s.PrivateKeyPayload = data
 
 	return nil
 }
@@ -72,14 +72,14 @@ func (b *SSH) Cipher(ctx context.Context, key *kms.Key) error {
 }
 
 func (b *SSH) cipherPrivateKey(ctx context.Context, key *kms.Key) error {
-	if len(b.PrivateKey) == 0 {
+	if len(b.PrivateKeyPayload) == 0 {
 		return nil
 	}
 	cipher, err := kms.Lookup(key.Scheme)
 	if err != nil {
 		return err
 	}
-	encrypted, err := cipher.Encrypt(ctx, key, b.PrivateKey)
+	encrypted, err := cipher.Encrypt(ctx, key, b.PrivateKeyPayload)
 	if err == nil {
 		var base64Encoded = make([]byte, base64.StdEncoding.EncodedLen(len(encrypted)))
 		base64.StdEncoding.Encode(base64Encoded, encrypted)
@@ -123,7 +123,7 @@ func (b *SSH) Decipher(ctx context.Context, key *kms.Key) error {
 }
 
 func (b *SSH) decryptPrivateKey(ctx context.Context, key *kms.Key, err error) error {
-	if len(b.PrivateKey) > 0 || len(b.EncryptedPrivateKey) == 0 {
+	if len(b.PrivateKeyPayload) > 0 || len(b.EncryptedPrivateKey) == 0 {
 		return nil
 	}
 	cipher, err := kms.Lookup(key.Scheme)
@@ -137,7 +137,7 @@ func (b *SSH) decryptPrivateKey(ctx context.Context, key *kms.Key, err error) er
 		if err != nil {
 			return err
 		}
-		b.PrivateKey = decrypted
+		b.PrivateKeyPayload = decrypted
 	}
 	return nil
 }
