@@ -28,7 +28,7 @@ func (s *Server) Wait() error {
 	select {
 	case <-s.httpHandler.done:
 		go func() {
-			time.Sleep(3 * time.Second)
+			time.Sleep(15 * time.Second)
 			_ = s.server.Close()
 		}()
 	}
