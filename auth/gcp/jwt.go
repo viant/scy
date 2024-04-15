@@ -14,8 +14,10 @@ import (
 )
 
 const (
-	certURL  = "https://www.googleapis.com/oauth2/v3/certs"
-	authType = "Bearer "
+	certURL      = "https://www.googleapis.com/oauth2/v3/certs"
+	tokenInfoURL = "https://oauth2.googleapis.com/tokeninfo"
+	userInfoURL  = "https://www.googleapis.com/oauth2/v2/userinfo"
+	authType     = "Bearer "
 )
 
 var verifierService = verifier.New(&verifier.Config{CertURL: certURL})
@@ -37,8 +39,12 @@ func JwtClaims(ctx context.Context, tokenString string) (*sjwt.Claims, error) {
 	return claims, err
 }
 
+const (
+	verifiedEmailKey = "email_verified"
+)
+
 func validateAccessToken(ctx context.Context, accessTokenString string) (*sjwt.Claims, error) {
-	data, err := fetchInfo(ctx, "https://oauth2.googleapis.com/tokeninfo", accessTokenString)
+	data, err := fetchInfo(ctx, tokenInfoURL, accessTokenString)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +55,7 @@ func validateAccessToken(ctx context.Context, accessTokenString string) (*sjwt.C
 	}
 	aMap := map[string]interface{}{}
 	if err = json.Unmarshal(data, &aMap); err == nil {
-		if value, ok := aMap["email_verified"]; ok && value == "true" {
+		if value, ok := aMap[verifiedEmailKey]; ok && value == "true" {
 			claims.VerifiedEmail = true
 		}
 	}
@@ -59,21 +65,28 @@ func validateAccessToken(ctx context.Context, accessTokenString string) (*sjwt.C
 	return claims, nil
 }
 
+const (
+	firstNameKey = "given_name"
+	lastNameKey  = "family_name"
+	nameKey      = "name"
+	idKey        = "id"
+)
+
 func updateClaimsWithProfileInfo(ctx context.Context, accessTokenString string, claims *sjwt.Claims) {
 	if strings.Contains(claims.Scope, "userinfo.email") {
-		if data, err := fetchInfo(ctx, "https://www.googleapis.com/oauth2/v2/userinfo", accessTokenString); err == nil {
+		if data, err := fetchInfo(ctx, userInfoURL, accessTokenString); err == nil {
 			aMap := map[string]interface{}{}
 			if err = json.Unmarshal(data, &aMap); err == nil {
-				if value, ok := aMap["given_name"]; ok {
+				if value, ok := aMap[firstNameKey]; ok {
 					claims.FirstName = value.(string)
 				}
-				if value, ok := aMap["family_name"]; ok {
+				if value, ok := aMap[lastNameKey]; ok {
 					claims.LastName = value.(string)
 				}
-				if value, ok := aMap["name"]; ok {
+				if value, ok := aMap[nameKey]; ok {
 					claims.Username = value.(string)
 				}
-				if value, ok := aMap["id"]; ok {
+				if value, ok := aMap[idKey]; ok {
 					idLiteral := value.(string)
 					id, _ := strconv.Atoi(idLiteral)
 					claims.UserID = id
