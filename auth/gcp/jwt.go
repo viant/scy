@@ -2,9 +2,15 @@ package gcp
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	sjwt "github.com/viant/scy/auth/jwt"
 	"github.com/viant/scy/auth/jwt/verifier"
+	"io"
+	"net/http"
+	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -14,14 +20,84 @@ const (
 
 var verifierService = verifier.New(&verifier.Config{CertURL: certURL})
 
-//JwtClaims extract token info, but it does not verify token
+// JwtClaims extract token info, but it does not verify token
 func JwtClaims(ctx context.Context, tokenString string) (*sjwt.Claims, error) {
 	if strings.HasPrefix(tokenString, authType) {
 		tokenString = tokenString[len(authType):]
 	}
+
 	token, err := verifierService.Validate(ctx, tokenString)
+	if err != nil {
+		if claims, aErr := validateAccessToken(ctx, tokenString); aErr == nil {
+			return claims, nil
+		}
+		return nil, err
+	}
+	claims, err := sjwt.NewClaim(token)
+	return claims, err
+}
+
+func validateAccessToken(ctx context.Context, accessTokenString string) (*sjwt.Claims, error) {
+	data, err := fetchInfo(ctx, "https://oauth2.googleapis.com/tokeninfo", accessTokenString)
 	if err != nil {
 		return nil, err
 	}
-	return sjwt.NewClaim(token)
+
+	claims := &sjwt.Claims{}
+	if err := json.Unmarshal(data, claims); err != nil {
+		return nil, err
+	}
+	aMap := map[string]interface{}{}
+	if err = json.Unmarshal(data, &aMap); err == nil {
+		if value, ok := aMap["email_verified"]; ok && value == "true" {
+			claims.VerifiedEmail = true
+		}
+	}
+	if claims.VerifyExpiresAt(time.Now(), true) {
+		updateClaimsWithProfileInfo(ctx, accessTokenString, claims)
+	}
+	return claims, nil
+}
+
+func updateClaimsWithProfileInfo(ctx context.Context, accessTokenString string, claims *sjwt.Claims) {
+	if strings.Contains(claims.Scope, "userinfo.email") {
+		if data, err := fetchInfo(ctx, "https://www.googleapis.com/oauth2/v2/userinfo", accessTokenString); err == nil {
+			aMap := map[string]interface{}{}
+			if err = json.Unmarshal(data, &aMap); err == nil {
+				if value, ok := aMap["given_name"]; ok {
+					claims.FirstName = value.(string)
+				}
+				if value, ok := aMap["family_name"]; ok {
+					claims.LastName = value.(string)
+				}
+				if value, ok := aMap["name"]; ok {
+					claims.Username = value.(string)
+				}
+				if value, ok := aMap["id"]; ok {
+					idLiteral := value.(string)
+					id, _ := strconv.Atoi(idLiteral)
+					claims.UserID = id
+				}
+			}
+		}
+	}
+}
+
+func fetchInfo(ctx context.Context, URL, tokenString string) ([]byte, error) {
+	request, err := http.NewRequestWithContext(ctx, "GET", URL, nil)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Set("Authorization", authType+tokenString)
+	client := &http.Client{}
+	response, err := client.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	if response.Body == nil {
+		return nil, fmt.Errorf("body was empty")
+	}
+	data, err := io.ReadAll(response.Body)
+	response.Body.Close()
+	return data, nil
 }
