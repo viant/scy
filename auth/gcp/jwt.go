@@ -111,6 +111,9 @@ func fetchInfo(ctx context.Context, URL, tokenString string) ([]byte, error) {
 		return nil, fmt.Errorf("body was empty")
 	}
 	data, err := io.ReadAll(response.Body)
+	if err != nil {
+		return nil, err
+	}
 	response.Body.Close()
 	return data, nil
 }
