@@ -43,6 +43,7 @@ func ReadUserAndPassword(timeout time.Duration) (user string, pass string, err e
 		if string(bytePassword2) != password {
 			err = errors.New("password did not match")
 		}
+		pass = string(password)
 	}
 	go reader()
 	select {
