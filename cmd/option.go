@@ -18,6 +18,7 @@ type Options struct {
 	Firebase  bool   `short:"f" long:"firebase" description:"firebase"`
 	Target    string `short:"t" long:"target" default:"raw" choice:"raw" choice:"basic"  choice:"sha1" choice:"aws" choice:"ssh" choice:"generic" choice:"jwt"`
 	Key       string `short:"k" long:"key" description:"key i.e blowfish://default"`
+	ProjectId string `short:"p" long:"projectId" description:"project id"`
 }
 
 func (o *Options) Validate() error {
@@ -43,6 +44,7 @@ func (o *Options) Validate() error {
 		}
 	case "verifyJwt":
 		if o.Firebase {
+
 		} else if o.RSAKey == "" && o.HMacKey == "" {
 			return fmt.Errorf("RSAKey/HMacKey was empty")
 		}

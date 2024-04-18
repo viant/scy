@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	cfirebase "firebase.google.com/go/v4"
 	"fmt"
 	"github.com/jessevdk/go-flags"
 	"github.com/viant/afs"
@@ -85,7 +86,10 @@ func AuthFirebase(options *Options) error {
 }
 
 func VerifyJwtClaim(options *Options) error {
-	jwtverifier := verifier.New(&verifier.Config{RSA: &scy.Resource{
+	if options.Firebase {
+		return VerifyFirebaseJwtClaim(context.Background(), options)
+	}
+	jwtVerifier := verifier.New(&verifier.Config{RSA: &scy.Resource{
 		URL: options.RSAKey,
 		Key: options.Key,
 	}, HMAC: &scy.Resource{
@@ -93,7 +97,7 @@ func VerifyJwtClaim(options *Options) error {
 		Key: options.Key,
 	}})
 
-	if err := jwtverifier.Init(context.Background()); err != nil {
+	if err := jwtVerifier.Init(context.Background()); err != nil {
 		return err
 	}
 	fs := afs.New()
@@ -101,7 +105,38 @@ func VerifyJwtClaim(options *Options) error {
 	if err != nil {
 		return err
 	}
-	jwtClaim, err := jwtverifier.VerifyClaims(context.Background(), string(jwtTokenString))
+	jwtClaim, err := jwtVerifier.VerifyClaims(context.Background(), string(jwtTokenString))
+	if err != nil {
+		return err
+	}
+	data, _ := json.Marshal(jwtClaim)
+	fmt.Printf("JWT CLAIM: %s\n", data)
+	return nil
+}
+
+func VerifyFirebaseJwtClaim(ctx context.Context, options *Options) error {
+	gcpService := gcp.New(client.NewScy())
+	var opts []option.ClientOption
+	cfg := &cfirebase.Config{}
+	if gcpService.ProjectID(ctx) == "" {
+		if options.ProjectId != "" {
+			cfg.ProjectID = options.ProjectId
+			opts = append(opts, option.WithQuotaProject(options.ProjectId))
+		}
+		tokenSource := gcpService.TokenSource("https://www.googleapis.com/auth/cloud-platform")
+		opts = append(opts, option.WithTokenSource(tokenSource))
+	}
+	identity, err := firebase.New(ctx, cfg, opts...)
+	if err != nil {
+		return fmt.Errorf("failed to create firebase auth service: %w", err)
+	}
+	fs := afs.New()
+	jwtTokenString, err := fs.DownloadWithURL(ctx, options.SourceURL)
+	if err != nil {
+		return fmt.Errorf("invalid token source, %w", err)
+	}
+
+	jwtClaim, err := identity.VerifyIdentity(ctx, string(jwtTokenString))
 	if err != nil {
 		return err
 	}

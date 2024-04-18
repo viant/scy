@@ -55,6 +55,13 @@ func (s *Service) IDClient(ctx context.Context, audience string, scopes ...strin
 	return s.Config(ctx, scopes...).Client(ctx, token), nil
 }
 
+func (s *Service) ProjectID(ctx context.Context) string {
+	if credentials, _ := google.FindDefaultCredentials(ctx); credentials != nil {
+		return credentials.ProjectID
+	}
+	return ""
+}
+
 func (s *Service) IDToken(ctx context.Context, audience string, scopes ...string) (*oauth2.Token, error) {
 	if len(scopes) == 0 {
 		scopes = Scopes
@@ -64,6 +71,7 @@ func (s *Service) IDToken(ctx context.Context, audience string, scopes ...string
 		if err != nil {
 			return nil, err
 		}
+
 		return tokenSource.Token()
 	}
 	if metadata.OnGCE() {
