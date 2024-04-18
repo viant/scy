@@ -20,13 +20,13 @@ type Service struct {
 	config   *firebase.Config
 }
 
-func (s *Service) InitiateBasicAuth(username, password string) (*sauth.Token, error) {
+func (s *Service) InitiateBasicAuth(ctx context.Context, username, password string) (*sauth.Token, error) {
 	req := &identitytoolkit.IdentitytoolkitRelyingpartyVerifyPasswordRequest{
 		Email:             username,
 		Password:          password,
 		ReturnSecureToken: true,
 	}
-	resp, err := s.identity.Relyingparty.VerifyPassword(req).Do()
+	resp, err := s.identity.Relyingparty.VerifyPassword(req).Context(ctx).Do()
 	if err != nil {
 		return nil, err
 	}

@@ -9,11 +9,15 @@ import (
 	"github.com/jessevdk/go-flags"
 	"github.com/viant/afs"
 	"github.com/viant/scy"
+	"github.com/viant/scy/auth/firebase"
+	"github.com/viant/scy/auth/gcp"
+	"github.com/viant/scy/auth/gcp/client"
 	"github.com/viant/scy/auth/jwt/signer"
 	"github.com/viant/scy/auth/jwt/verifier"
 	"github.com/viant/scy/cred"
 	"github.com/viant/toolbox"
 	"golang.org/x/crypto/ssh/terminal"
+	"google.golang.org/api/option"
 	"log"
 	"reflect"
 	"syscall"
@@ -39,11 +43,45 @@ func Run(args []string) {
 		err = SignJwtClaim(options)
 	case "verifyJwt":
 		err = VerifyJwtClaim(options)
+	case "auth":
+		err = Auth(options)
 
 	}
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func Auth(options *Options) error {
+	if options.Firebase {
+		return AuthFirebase(options)
+	}
+	return fmt.Errorf("unsupported auth mode")
+}
+
+func AuthFirebase(options *Options) error {
+	options.Target = "basic"
+	secret, err := loadSecret(options)
+	if err != nil {
+		return err
+	}
+	gcpService := gcp.New(client.NewScy())
+	tokenSource := gcpService.TokenSource("https://www.googleapis.com/auth/cloud-platform")
+	identity, err := firebase.New(context.Background(), nil, option.WithTokenSource(tokenSource))
+	if err != nil {
+		return err
+	}
+	basicCred := secret.Target.(*cred.Basic)
+	token, err := identity.InitiateBasicAuth(context.Background(), basicCred.Username, basicCred.Password)
+	if err != nil {
+		return err
+	}
+	data, err := json.Marshal(token)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("%s\n", data)
+	return nil
 }
 
 func VerifyJwtClaim(options *Options) error {
@@ -111,19 +149,9 @@ func SignJwtClaim(options *Options) error {
 	return nil
 }
 
-//Reveal reveals secret
+// Reveal reveals secret
 func Reveal(options *Options) error {
-	srv := scy.New()
-	var target interface{} = nil
-	targetType, err := cred.TargetType(options.Target)
-	if err != nil {
-		return err
-	}
-	if targetType != nil {
-		target = targetType
-	}
-	resource := scy.NewResource(target, options.SourceURL, options.Key)
-	secret, err := srv.Load(context.Background(), resource)
+	secret, err := loadSecret(options)
 	if err != nil {
 		return err
 	}
@@ -140,7 +168,25 @@ func Reveal(options *Options) error {
 	return nil
 }
 
-//Secure secure secrets
+func loadSecret(options *Options) (*scy.Secret, error) {
+	srv := scy.New()
+	var target interface{} = nil
+	targetType, err := cred.TargetType(options.Target)
+	if err != nil {
+		return nil, err
+	}
+	if targetType != nil {
+		target = targetType
+	}
+	resource := scy.NewResource(target, options.SourceURL, options.Key)
+	secret, err := srv.Load(context.Background(), resource)
+	if err != nil {
+		return nil, err
+	}
+	return secret, nil
+}
+
+// Secure secure secrets
 func Secure(options *Options) error {
 	data, err := readSource(options)
 	if err != nil {
