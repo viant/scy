@@ -13,7 +13,7 @@ type Token struct {
 	IDToken string `json:"id_token,omitempty"`
 }
 
-//Expired returns true if expired
+// Expired returns true if expired
 func (t Token) Expired(now time.Time) bool {
 	return t.Expiry.Before(now)
 }

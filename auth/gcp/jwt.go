@@ -55,6 +55,9 @@ func validateAccessToken(ctx context.Context, accessTokenString string) (*sjwt.C
 	}
 	aMap := map[string]interface{}{}
 	if err = json.Unmarshal(data, &aMap); err == nil {
+		if error, ok := aMap["error"]; ok {
+			return nil, fmt.Errorf("%w", error)
+		}
 		if value, ok := aMap[verifiedEmailKey]; ok && value == "true" {
 			claims.VerifiedEmail = true
 		}
