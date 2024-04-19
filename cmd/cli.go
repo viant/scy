@@ -67,8 +67,7 @@ func AuthFirebase(options *Options) error {
 		return err
 	}
 	gcpService := gcp.New(client.NewScy())
-	tokenSource := gcpService.TokenSource("https://www.googleapis.com/auth/cloud-platform")
-	identity, err := firebase.New(context.Background(), nil, option.WithTokenSource(tokenSource))
+	identity, err := newFirebaseIdentity(context.Background(), options, gcpService)
 	if err != nil {
 		return err
 	}
@@ -116,17 +115,7 @@ func VerifyJwtClaim(options *Options) error {
 
 func VerifyFirebaseJwtClaim(ctx context.Context, options *Options) error {
 	gcpService := gcp.New(client.NewScy())
-	var opts []option.ClientOption
-	cfg := &cfirebase.Config{}
-	if gcpService.ProjectID(ctx) == "" {
-		if options.ProjectId != "" {
-			cfg.ProjectID = options.ProjectId
-			opts = append(opts, option.WithQuotaProject(options.ProjectId))
-		}
-		tokenSource := gcpService.TokenSource("https://www.googleapis.com/auth/cloud-platform")
-		opts = append(opts, option.WithTokenSource(tokenSource))
-	}
-	identity, err := firebase.New(ctx, cfg, opts...)
+	identity, err := newFirebaseIdentity(ctx, options, gcpService)
 	if err != nil {
 		return fmt.Errorf("failed to create firebase auth service: %w", err)
 	}
@@ -143,6 +132,22 @@ func VerifyFirebaseJwtClaim(ctx context.Context, options *Options) error {
 	data, _ := json.Marshal(jwtClaim)
 	fmt.Printf("JWT CLAIM: %s\n", data)
 	return nil
+}
+
+func newFirebaseIdentity(ctx context.Context, options *Options, gcpService *gcp.Service) (*firebase.Service, error) {
+	var opts []option.ClientOption
+
+	cfg := &cfirebase.Config{}
+	if gcpService.ProjectID(ctx) == "" {
+		if options.ProjectId != "" {
+			cfg.ProjectID = options.ProjectId
+			opts = append(opts, option.WithQuotaProject(options.ProjectId))
+		}
+		tokenSource := gcpService.TokenSource("https://www.googleapis.com/auth/cloud-platform")
+		opts = append(opts, option.WithTokenSource(tokenSource))
+	}
+	identity, err := firebase.New(ctx, cfg, opts...)
+	return identity, err
 }
 
 func SignJwtClaim(options *Options) error {
@@ -235,6 +240,8 @@ func Secure(options *Options) error {
 	if targetType != nil {
 		target = targetType
 	}
+	srv := scy.New()
+
 	resource := scy.NewResource(target, options.DestURL, options.Key)
 	var secret *scy.Secret
 	if target != nil {
@@ -242,11 +249,24 @@ func Secure(options *Options) error {
 		if err := json.Unmarshal(data, instance); err != nil {
 			return err
 		}
+		switch actual := instance.(type) {
+		case *cred.Basic:
+			if actual.EncryptedPassword != "" && actual.Password == "" {
+				if secret, err := srv.Load(context.Background(), scy.NewResource(target, options.SourceURL, options.Key)); err == nil {
+					instance = secret.Target.(*cred.Basic)
+				}
+			}
+		case *cred.Generic:
+			if actual.EncryptedPassword != "" && actual.Password == "" {
+				if secret, err := srv.Load(context.Background(), scy.NewResource(target, options.SourceURL, options.Key)); err == nil {
+					instance = secret.Target.(*cred.Generic)
+				}
+			}
+		}
 		secret = scy.NewSecret(instance, resource)
 	} else {
 		secret = scy.NewSecret(string(data), resource)
 	}
-	srv := scy.New()
 	return srv.Store(context.Background(), secret)
 }
 

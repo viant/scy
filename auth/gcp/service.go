@@ -18,6 +18,7 @@ import (
 	"google.golang.org/api/idtoken"
 	"math/rand"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -58,6 +59,12 @@ func (s *Service) IDClient(ctx context.Context, audience string, scopes ...strin
 func (s *Service) ProjectID(ctx context.Context) string {
 	if credentials, _ := google.FindDefaultCredentials(ctx); credentials != nil {
 		return credentials.ProjectID
+	}
+	if value := os.Getenv("GCP_PROJECT"); value != "" {
+		return value
+	}
+	if value := os.Getenv("GCLOUD_PROJECT"); value != "" {
+		return value
 	}
 	return ""
 }
