@@ -26,7 +26,11 @@ func (o *Options) Validate() error {
 	switch o.Mode {
 	case "secure":
 		if tagetType != nil && o.SourceURL == "" {
-			return fmt.Errorf("src was empty")
+			switch o.Target {
+			case "basic", "key":
+			default:
+				return fmt.Errorf("src was empty")
+			}
 		}
 		if o.DestURL == "" {
 			return fmt.Errorf("dst was empty")
@@ -63,6 +67,9 @@ func (o *Options) Init() {
 }
 
 func normalizeLocation(location string) string {
+	if location == "" {
+		return ""
+	}
 	if strings.HasPrefix(location, "~") {
 		return os.Getenv("HOME") + location[1:]
 	}

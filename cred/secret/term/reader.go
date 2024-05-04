@@ -36,20 +36,36 @@ func readSecrets(nameLabel, secretLabel string, timeout time.Duration) (name str
 		fmt.Printf("Enter %s: ", nameLabel)
 		name, _ = reader.ReadString('\n')
 		fmt.Printf("Enter %s: ", secretLabel)
-		secret1Bytes, err = terminal.ReadPassword(int(syscall.Stdin))
+		secret1Bytes, err = terminal.ReadPassword(syscall.Stdin)
 		if err != nil {
 			err = fmt.Errorf("failed to read %s %v", secretLabel, err)
 			return
 		}
-		fmt.Print("\nRetype %s: ", secretLabel)
-		secret2Bytes, err = terminal.ReadPassword(int(syscall.Stdin))
+		fmt.Printf("\nRetype %s: ", secretLabel)
+		secret2Bytes, err = terminal.ReadPassword(syscall.Stdin)
 		if err != nil {
 			err = fmt.Errorf("failed to read %s %v", secretLabel, err)
 			return
 		}
-		secret := string(secret1Bytes)
+		secret = string(secret1Bytes)
 		if string(secret2Bytes) != secret {
 			err = fmt.Errorf("%s did not match", secretLabel)
+			fmt.Printf("\nEnter %s: ", secretLabel)
+			secret1Bytes, err = terminal.ReadPassword(syscall.Stdin)
+			if err != nil {
+				err = fmt.Errorf("failed to read %s %v", secretLabel, err)
+				return
+			}
+			fmt.Printf("\nRetype %s: ", secretLabel)
+			secret2Bytes, err = terminal.ReadPassword(syscall.Stdin)
+			if err != nil {
+				err = fmt.Errorf("failed to read %s %v", secretLabel, err)
+				return
+			}
+			secret = string(secret1Bytes)
+			if string(secret2Bytes) != secret {
+				err = fmt.Errorf("%s did not match", secretLabel)
+			}
 		}
 	}
 	go reader()

@@ -285,6 +285,9 @@ func readSource(options *Options) ([]byte, error) {
 	}
 	switch options.Target {
 	case "basic":
+		if options.Key == "" {
+			options.Key = "blowfish://default"
+		}
 		user, password, err := term.ReadUserAndPassword(2 * time.Minute)
 		if err != nil {
 			return nil, err
@@ -292,6 +295,10 @@ func readSource(options *Options) ([]byte, error) {
 		basic := cred.Basic{Username: user, Password: password}
 		return json.Marshal(basic)
 	case "key":
+		if options.Key == "" {
+			options.Key = "blowfish://default"
+		}
+
 		keyId, keySecret, err := term.ReadSecretKey(2 * time.Minute)
 		if err != nil {
 			return nil, err
