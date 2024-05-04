@@ -5,7 +5,7 @@ import (
 	"reflect"
 )
 
-//TargetType returns target type for string
+// TargetType returns target type for string
 func TargetType(target string) (reflect.Type, error) {
 	var result reflect.Type
 	switch target {
@@ -17,6 +17,8 @@ func TargetType(target string) (reflect.Type, error) {
 		result = reflect.TypeOf(JwtConfig{})
 	case "sha1":
 		result = reflect.TypeOf(SHA1{})
+	case "entry":
+		result = reflect.TypeOf(Entry{})
 	case "ssh":
 		result = reflect.TypeOf(SSH{})
 	case "generic":

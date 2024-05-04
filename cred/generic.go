@@ -5,11 +5,12 @@ import (
 	"github.com/viant/scy/kms"
 )
 
-//Generic represents generic credentials
+// Generic represents generic credentials
 type Generic struct {
 	SSH
 	JwtConfig
 	Aws
+	Entry
 }
 
 func (g *Generic) Cipher(ctx context.Context, key *kms.Key) error {
@@ -18,6 +19,9 @@ func (g *Generic) Cipher(ctx context.Context, key *kms.Key) error {
 			return g.SSH.Cipher(ctx, key)
 		}
 		return g.Basic.Cipher(ctx, key)
+	}
+	if g.Value != "" {
+		return g.Entry.Cipher(ctx, key)
 	}
 	return nil
 }
@@ -28,6 +32,9 @@ func (g *Generic) Decipher(ctx context.Context, key *kms.Key) error {
 			return g.SSH.Decipher(ctx, key)
 		}
 		return g.Basic.Decipher(ctx, key)
+	}
+	if g.EncryptedValue != "" {
+		return g.Entry.Decipher(ctx, key)
 	}
 	return nil
 }

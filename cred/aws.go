@@ -7,7 +7,7 @@ import (
 	"github.com/viant/scy/kms"
 )
 
-//Aws represents AWS credentials
+// Aws represents AWS credentials
 type (
 	Aws struct {
 		Id              string      `json:",omitempty"`
@@ -26,7 +26,7 @@ type (
 	}
 )
 
-//Cipher ciphers password to encrypted password, clears password after that
+// Cipher ciphers password to encrypted password, clears password after that
 func (b *Aws) Cipher(ctx context.Context, key *kms.Key) error {
 	if b.Secret == "" {
 		return fmt.Errorf("secret was empty")
@@ -45,7 +45,7 @@ func (b *Aws) Cipher(ctx context.Context, key *kms.Key) error {
 	return err
 }
 
-//Decipher deciphers EncryptedPassword or returns error
+// Decipher deciphers EncryptedValue or returns error
 func (b *Aws) Decipher(ctx context.Context, key *kms.Key) error {
 	if len(b.EncryptedSecret) == 0 {
 		if b.Secret != "" {
@@ -63,7 +63,7 @@ func (b *Aws) Decipher(ctx context.Context, key *kms.Key) error {
 	}
 	decrypted, err := cipher.Decrypt(ctx, key, encrypted)
 	if err != nil {
-		return fmt.Errorf("failed to decrypt EncryptedPassword: %w", err)
+		return fmt.Errorf("failed to decrypt EncryptedValue: %w", err)
 	}
 	b.Secret = string(decrypted)
 	b.EncryptedSecret = ""

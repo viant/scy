@@ -55,7 +55,7 @@ func ExampleService_Load() {
 	}
 
 	{ //loading local secret
-		//Assume that : /tmp/secret.json {"Username":"Bob","EncryptedPassword":"AAAAAAAAAAAtM4MTWOJOJ4SyE44PjH66"}
+		//Assume that : /tmp/secret.json {"Username":"Bob","EncryptedValue":"AAAAAAAAAAAtM4MTWOJOJ4SyE44PjH66"}
 		//make sure _ "github.com/viant/scy/kms/blowfish" is imported
 		resource := NewResource(cred.Basic{}, "/tmp/secret.json", "blowfish://default")
 		secrets := New()

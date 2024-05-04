@@ -7,7 +7,7 @@ import (
 	"github.com/viant/scy/kms"
 )
 
-//Basic represents basic credentials
+// Basic represents basic credentials
 type Basic struct {
 	Endpoint          string `json:",omitempty"`
 	Email             string `json:",omitempty"`
@@ -16,7 +16,7 @@ type Basic struct {
 	EncryptedPassword string `json:",omitempty"`
 }
 
-//Cipher ciphers password to encrypted password, clears password after that
+// Cipher ciphers password to encrypted password, clears password after that
 func (b *Basic) Cipher(ctx context.Context, key *kms.Key) error {
 	if b.Password == "" {
 		return fmt.Errorf("password was empty")
@@ -35,7 +35,7 @@ func (b *Basic) Cipher(ctx context.Context, key *kms.Key) error {
 	return err
 }
 
-//Decipher deciphers EncryptedPassword or returns error
+// Decipher deciphers EncryptedPassword or returns error
 func (b *Basic) Decipher(ctx context.Context, key *kms.Key) error {
 	if len(b.EncryptedPassword) == 0 {
 		return fmt.Errorf("encryptedPassword was empty")
@@ -50,7 +50,7 @@ func (b *Basic) Decipher(ctx context.Context, key *kms.Key) error {
 	}
 	decrypted, err := cipher.Decrypt(ctx, key, encrypted)
 	if err != nil {
-		return fmt.Errorf("failed to decrypt EncryptedPassword: %w", err)
+		return fmt.Errorf("failed to decrypt EncryptedValue: %w", err)
 	}
 
 	b.Password = string(decrypted)

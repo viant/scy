@@ -14,7 +14,7 @@ import (
 	"strings"
 )
 
-// Secrets represents Secret to Location map
+// Secrets represents Value to Location map
 type Secrets map[Key]Resource
 
 // NewSecrets creates new secrets

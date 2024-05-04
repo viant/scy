@@ -6,7 +6,7 @@ import (
 	"github.com/viant/scy/kms"
 )
 
-//SHA1 represents sha1 key secrets
+// SHA1 represents sha1 key secrets
 type SHA1 struct {
 	Key                   string `json:",omitempty"`
 	EncryptedKey          string `json:",omitempty"`
@@ -14,7 +14,7 @@ type SHA1 struct {
 	EncryptedIntegrityKey string `json:",omitempty"`
 }
 
-//Cipher ciphers password to encrypted password, clears password after that
+// Cipher ciphers password to encrypted password, clears password after that
 func (b *SHA1) Cipher(ctx context.Context, key *kms.Key) error {
 	if b.Key == "" {
 		return fmt.Errorf("key was empty")
@@ -36,7 +36,7 @@ func (b *SHA1) Cipher(ctx context.Context, key *kms.Key) error {
 	return err
 }
 
-//Decipher deciphers EncryptedPassword or returns error
+// Decipher deciphers EncryptedValue or returns error
 func (b *SHA1) Decipher(ctx context.Context, key *kms.Key) error {
 	if len(b.EncryptedKey) == 0 {
 		return fmt.Errorf("encryptedKey was empty")

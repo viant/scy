@@ -136,7 +136,6 @@ func VerifyFirebaseJwtClaim(ctx context.Context, options *Options) error {
 
 func newFirebaseIdentity(ctx context.Context, options *Options, gcpService *gcp.Service) (*firebase.Service, error) {
 	var opts []option.ClientOption
-
 	cfg := &cfirebase.Config{}
 	if gcpService.ProjectID(ctx) == "" {
 		if options.ProjectId != "" {
@@ -151,7 +150,6 @@ func newFirebaseIdentity(ctx context.Context, options *Options, gcpService *gcp.
 }
 
 func SignJwtClaim(options *Options) error {
-
 	cfg := &signer.Config{}
 	if options.HMacKey != "" {
 		cfg.HMAC = &scy.Resource{
@@ -286,13 +284,14 @@ func readSecret(timeout time.Duration) ([]byte, error) {
 		defer func() {
 			completed <- true
 		}()
-		fmt.Print("Enter Secret: ")
+
+		fmt.Print("Enter Value: ")
 		rawSecret, err = terminal.ReadPassword(syscall.Stdin)
 		if err != nil {
 			err = fmt.Errorf("failed to read secret %v", err)
 			return
 		}
-		fmt.Print("\nRetype Secret: ")
+		fmt.Print("\nRetype Value: ")
 		rawSecret2, err = terminal.ReadPassword(syscall.Stdin)
 		if err != nil {
 			err = fmt.Errorf("failed to read secret %v", err)

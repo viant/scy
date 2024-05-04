@@ -35,6 +35,7 @@ func (s *Service) GetCredentials(ctx context.Context, resource string) (*cred.Ge
 	}
 	return ret, nil
 }
+
 func (s *Service) Lookup(ctx context.Context, secret Resource) (*scy.Secret, error) {
 	s.lock.RLock()
 	ret, ok := s.cache[secret.String()]
