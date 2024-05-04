@@ -50,7 +50,7 @@ func (b *Basic) Decipher(ctx context.Context, key *kms.Key) error {
 	}
 	decrypted, err := cipher.Decrypt(ctx, key, encrypted)
 	if err != nil {
-		return fmt.Errorf("failed to decrypt EncryptedValue: %w", err)
+		return fmt.Errorf("failed to decrypt EncryptedSecret: %w", err)
 	}
 
 	b.Password = string(decrypted)

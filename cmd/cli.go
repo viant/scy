@@ -16,6 +16,7 @@ import (
 	"github.com/viant/scy/auth/jwt/signer"
 	"github.com/viant/scy/auth/jwt/verifier"
 	"github.com/viant/scy/cred"
+	"github.com/viant/scy/cred/secret/term"
 	"github.com/viant/toolbox"
 	"golang.org/x/crypto/ssh/terminal"
 	"google.golang.org/api/option"
@@ -248,7 +249,15 @@ func Secure(options *Options) error {
 			return err
 		}
 		switch actual := instance.(type) {
+		case *cred.SecretKey:
+
+			if actual.EncryptedSecret != "" && actual.Secret == "" {
+				if secret, err := srv.Load(context.Background(), scy.NewResource(target, options.SourceURL, options.Key)); err == nil {
+					instance = secret.Target.(*cred.SecretKey)
+				}
+			}
 		case *cred.Basic:
+
 			if actual.EncryptedPassword != "" && actual.Password == "" {
 				if secret, err := srv.Load(context.Background(), scy.NewResource(target, options.SourceURL, options.Key)); err == nil {
 					instance = secret.Target.(*cred.Basic)
@@ -260,6 +269,7 @@ func Secure(options *Options) error {
 					instance = secret.Target.(*cred.Generic)
 				}
 			}
+
 		}
 		secret = scy.NewSecret(instance, resource)
 	} else {
@@ -273,6 +283,22 @@ func readSource(options *Options) ([]byte, error) {
 		fs := afs.New()
 		return fs.DownloadWithURL(context.Background(), options.SourceURL)
 	}
+	switch options.Target {
+	case "basic":
+		user, password, err := term.ReadUserAndPassword(2 * time.Minute)
+		if err != nil {
+			return nil, err
+		}
+		basic := cred.Basic{Username: user, Password: password}
+		return json.Marshal(basic)
+	case "key":
+		keyId, keySecret, err := term.ReadSecretKey(2 * time.Minute)
+		if err != nil {
+			return nil, err
+		}
+		key := cred.SecretKey{Key: keyId, Secret: keySecret}
+		return json.Marshal(key)
+	}
 	return readSecret(time.Minute)
 }
 
@@ -285,13 +311,13 @@ func readSecret(timeout time.Duration) ([]byte, error) {
 			completed <- true
 		}()
 
-		fmt.Print("Enter Value: ")
+		fmt.Print("Enter Secret: ")
 		rawSecret, err = terminal.ReadPassword(syscall.Stdin)
 		if err != nil {
 			err = fmt.Errorf("failed to read secret %v", err)
 			return
 		}
-		fmt.Print("\nRetype Value: ")
+		fmt.Print("\nRetype Secret: ")
 		rawSecret2, err = terminal.ReadPassword(syscall.Stdin)
 		if err != nil {
 			err = fmt.Errorf("failed to read secret %v", err)

@@ -17,8 +17,8 @@ func TargetType(target string) (reflect.Type, error) {
 		result = reflect.TypeOf(JwtConfig{})
 	case "sha1":
 		result = reflect.TypeOf(SHA1{})
-	case "entry":
-		result = reflect.TypeOf(Entry{})
+	case "key":
+		result = reflect.TypeOf(SecretKey{})
 	case "ssh":
 		result = reflect.TypeOf(SSH{})
 	case "generic":

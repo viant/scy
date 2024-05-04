@@ -36,7 +36,7 @@ func (b *SHA1) Cipher(ctx context.Context, key *kms.Key) error {
 	return err
 }
 
-// Decipher deciphers EncryptedValue or returns error
+// Decipher deciphers EncryptedSecret or returns error
 func (b *SHA1) Decipher(ctx context.Context, key *kms.Key) error {
 	if len(b.EncryptedKey) == 0 {
 		return fmt.Errorf("encryptedKey was empty")

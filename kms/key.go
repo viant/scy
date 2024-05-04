@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-//Key represents secret key
+// Key represents secret key
 type Key struct {
 	Raw    string
 	Path   string
@@ -21,7 +21,7 @@ type Key struct {
 	Scheme string
 }
 
-//Key returns key data
+// Key returns key data
 func (k *Key) Key(ctx context.Context, defaultValue []byte) ([]byte, error) {
 	switch k.Auth {
 	case "inline":
@@ -96,7 +96,7 @@ outer:
 	return macs, nil
 }
 
-//NewKey creates a new key
+// NewKey creates a new key
 func NewKey(raw string) (*Key, error) {
 	scheme := url.Scheme(raw, file.Scheme)
 	path := raw
