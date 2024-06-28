@@ -23,6 +23,19 @@ type Service struct {
 	embedFS       *embed.FS
 }
 
+// GeyKey returns secret key for supplied resource
+func (s *Service) GeyKey(ctx context.Context, resource string) (*cred.SecretKey, error) {
+	secret, err := s.Lookup(ctx, Resource(resource))
+	if err != nil {
+		return nil, err
+	}
+	ret, ok := secret.Target.(*cred.Generic)
+	if !ok {
+		return nil, fmt.Errorf("unsupported secret type: %T, expected: %T", secret.Target, ret)
+	}
+	return &ret.SecretKey, nil
+}
+
 // GetCredentials returns credentials for supplied resource
 func (s *Service) GetCredentials(ctx context.Context, resource string) (*cred.Generic, error) {
 	secret, err := s.Lookup(ctx, Resource(resource))
