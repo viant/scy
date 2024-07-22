@@ -9,7 +9,7 @@ pipeline:
   set_sdk:
     action: sdk.set
     target: $target
-    sdk: go:1.17
+    sdk: go:1.22
   build:
     action: exec:run
     target: $target
@@ -27,4 +27,3 @@ pipeline:
       - export GOARCH=arm64
       - go build -ldflags="-X 'main.Version=${Ver}'" -trimpath
       - tar cvzf scy_darwin_arm64_${Ver}.tar.gz scy
-   
