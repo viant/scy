@@ -23,6 +23,7 @@ type (
 		MaxAttempts       int
 		insertSQL         string
 		updateSQL         string
+		attempsSQL        string
 	}
 
 	Connector interface {
@@ -118,9 +119,13 @@ func (c *Config) buildSQL() error {
 	}
 	authBuilder.WriteString(lockedColumn)
 	authBuilder.WriteString(", ")
+	if attemptsColumn != "" {
+		c.attempsSQL = "UPDATE " + table + " SET " + attemptsColumn + " = " + attemptsColumn + " + ? WHERE " + idColumn + " = ?"
+	}
 	if attemptsColumn == "" {
 		attemptsColumn = "0 AS attempts"
 	}
+
 	authBuilder.WriteString(attemptsColumn)
 	authBuilder.WriteString(" FROM " + table + " WHERE " + idColumn + " = ?")
 	c.AuthSQL = authBuilder.String()

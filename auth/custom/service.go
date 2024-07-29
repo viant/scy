@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/viant/scy/auth"
 	"github.com/viant/scy/auth/jwt/signer"
 	"io"
 	"time"
@@ -19,14 +20,14 @@ type Service struct {
 }
 
 // Authenticate authenticates user
-func (s *Service) Authenticate(ctx context.Context, id, password string, expireIn time.Duration, claims string) (string, error) {
+func (s *Service) Authenticate(ctx context.Context, id, password string, expireIn time.Duration, claims string) (*auth.Token, error) {
 	err := s.config.EnsureSQL()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	ret, err := s.authenticate(ctx, id, password, expireIn, claims)
 	if err != nil {
-		return "", newAuthError(err)
+		return nil, newAuthError(err)
 	}
 	return ret, nil
 }
@@ -64,39 +65,69 @@ func (s *Service) SetPassword(ctx context.Context, id, password string) error {
 	return err
 }
 
-func (s *Service) authenticate(ctx context.Context, id string, password string, expireIn time.Duration, claims string) (string, error) {
-	if s.config.IdentitySQL == "" {
+func (s *Service) authenticate(ctx context.Context, id string, password string, expireIn time.Duration, claims string) (*auth.Token, error) {
+	if s.jwtSigner == nil {
+		return nil, fmt.Errorf("jwtSigner was nil")
+	}
+	if s.config.IdentitySQL != "" {
 		identity, err := s.fetchIdentity(ctx, id)
 		if err != nil {
-			return "", err
+			return nil, err
+		}
+		if identity == nil {
+			return nil, fmt.Errorf("invalid identity: %v", id)
 		}
 		id = identity.ID
 	}
 	subject, err := s.fetchSubject(ctx, id)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	if subject == nil {
-		return "", fmt.Errorf("invalid subject: %v", id)
+		return nil, fmt.Errorf("invalid subject: %v", id)
 	}
 	if subject.IsLocked(s.config.MaxAttempts) {
-		return "", fmt.Errorf("account is locked")
+		return nil, fmt.Errorf("account is locked")
 	}
-	hashedPassword, err := HashPassword(password)
+	if !CheckPasswordHash(password, *subject.Password) {
+		if err = s.increaseAttempts(ctx, id); err != nil {
+			return nil, fmt.Errorf("invalid password %v", err)
+		}
+		return nil, fmt.Errorf("invalid password")
+	}
+
+	updatedClaims, err := s.updateClaim(claims, id)
 	if err != nil {
-		return "", err
-	}
-	if !CheckPasswordHash(password, hashedPassword) {
-		return "", fmt.Errorf("invalid password")
-	}
-	updatedClaims, err := s.updateClaim(claims, subject)
-	if err != nil {
-		return "", err
+		return nil, err
 	}
 	if expireIn == 0 {
 		expireIn = time.Hour
 	}
-	return s.jwtSigner.Create(expireIn, updatedClaims)
+	expiry := time.Now().Add(expireIn)
+	token, err := s.jwtSigner.Create(expireIn, updatedClaims)
+	if err != nil {
+		return nil, err
+	}
+	ret := &auth.Token{
+		IDToken: token,
+	}
+	ret.Expiry = expiry
+	return ret, nil
+}
+
+func (s *Service) increaseAttempts(ctx context.Context, id string) error {
+	if s.config.attempsSQL == "" {
+		return nil
+	}
+	db, err := s.authConnector.DB()
+	if err != nil {
+		return err
+	}
+	_, err = db.ExecContext(ctx, s.config.attempsSQL, 1, id)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *Service) fetchIdentity(ctx context.Context, id string) (*Identity, error) {
@@ -119,7 +150,7 @@ func (s *Service) fetchIdentity(ctx context.Context, id string) (*Identity, erro
 }
 
 func (s *Service) fetchSubject(ctx context.Context, id string) (*Subject, error) {
-	db, err := s.identityConnector.DB()
+	db, err := s.authConnector.DB()
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +164,7 @@ func (s *Service) fetchSubject(ctx context.Context, id string) (*Subject, error)
 		return nil, err
 	}
 	if subject.Password == nil {
-		return nil, nil
+		return nil, fmt.Errorf("password was empty")
 	}
 	return subject, nil
 }
@@ -145,7 +176,7 @@ func handlerQueryError(err error) error {
 	return err
 }
 
-func (s *Service) updateClaim(claims string, subject *Subject) (string, error) {
+func (s *Service) updateClaim(claims string, id string) (string, error) {
 	var claimsMap map[string]interface{}
 	if claims != "" {
 		err := json.Unmarshal([]byte(claims), &claimsMap)
@@ -153,7 +184,7 @@ func (s *Service) updateClaim(claims string, subject *Subject) (string, error) {
 			return "", err
 		}
 	}
-	claimsMap["sub"] = subject.ID
+	claimsMap["sub"] = id
 	data, err := json.Marshal(claimsMap)
 	if err != nil {
 		return "", err
