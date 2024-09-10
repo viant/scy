@@ -10,9 +10,9 @@ import (
 
 // SecretKey represents a key
 type SecretKey struct {
-	Key             string `json:",omitempty"`
-	Secret          string `json:",omitempty"`
-	EncryptedSecret string `json:",omitempty"`
+	Key             string `json:",omitempty" yaml:"Key"`
+	Secret          string `json:",omitempty" yaml:"Secret"`
+	EncryptedSecret string `json:",omitempty" yaml:"EncryptedSecret"`
 }
 
 // SetEnv sets env
