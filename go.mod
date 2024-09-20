@@ -19,11 +19,9 @@ require (
 	github.com/stretchr/testify v1.9.0
 	github.com/viant/afs v1.25.1-0.20231110184132-877ed98abca1
 	github.com/viant/afsc v1.9.1
-	github.com/viant/datly v0.8.11
 	github.com/viant/sqlparser v0.7.1-0.20240717151907-216ea35d127a
-	github.com/viant/sqlx v0.12.1-0.20240613223731-980e9de11f2f
 	github.com/viant/toolbox v0.36.0
-	golang.org/x/crypto v0.22.0
+	golang.org/x/crypto v0.26.0
 	golang.org/x/oauth2 v0.19.0
 	google.golang.org/api v0.174.0
 )
@@ -38,8 +36,6 @@ require (
 	cloud.google.com/go/secretmanager v1.11.5 // indirect
 	cloud.google.com/go/storage v1.40.0 // indirect
 	github.com/MicahParks/keyfunc v1.9.0 // indirect
-	github.com/aerospike/aerospike-client-go v4.5.2+incompatible // indirect
-	github.com/aerospike/aerospike-client-go/v6 v6.15.1 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.11 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.15 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.15 // indirect
@@ -52,7 +48,6 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
-	github.com/francoispqt/gojay v1.2.13 // indirect
 	github.com/go-errors/errors v1.5.1 // indirect
 	github.com/go-logr/logr v1.4.1 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
@@ -70,39 +65,22 @@ require (
 	github.com/lestrrat-go/iter v1.0.2 // indirect
 	github.com/lestrrat-go/option v1.0.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/viant/aerospike v0.0.0-20240722133740-00e541ae8f36 // indirect
-	github.com/viant/cloudless v1.9.8 // indirect
-	github.com/viant/gmetric v0.3.1-0.20230405233616-cc90deee60c4 // indirect
-	github.com/viant/godiff v0.4.1 // indirect
-	github.com/viant/govalidator v0.2.2 // indirect
-	github.com/viant/igo v0.2.0 // indirect
+	github.com/viant/assertly v0.9.1-0.20220620174148-bab013f93a60 // indirect
 	github.com/viant/parsly v0.3.3-0.20240717150634-e1afaedb691b // indirect
-	github.com/viant/structology v0.5.6-0.20240715114555-e89beafaa7b8 // indirect
-	github.com/viant/structql v0.4.2-0.20240712002135-b1ef22dd834f // indirect
-	github.com/viant/tagly v0.2.1-0.20240521205717-55de744e893c // indirect
-	github.com/viant/velty v0.2.1-0.20230927172116-ba56497b5c85 // indirect
-	github.com/viant/x v0.3.0 // indirect
-	github.com/viant/xdatly v0.3.1-0.20240710035338-b561698d2bf4 // indirect
-	github.com/viant/xdatly/extension v0.0.0-20231013204918-ecf3c2edf259 // indirect
-	github.com/viant/xdatly/handler v0.0.0-20240710035338-b561698d2bf4 // indirect
-	github.com/viant/xdatly/types/core v0.0.0-20240109065401-9758ebacb4bb // indirect
-	github.com/viant/xdatly/types/custom v0.0.0-20240624200855-79bbed0d3db9 // indirect
-	github.com/viant/xmlify v0.1.1-0.20231127181625-8a6b48ceea12 // indirect
 	github.com/viant/xreflect v0.6.2 // indirect
 	github.com/viant/xunsafe v0.9.3-0.20240530173106-69808f27713b // indirect
-	github.com/yuin/gopher-lua v1.1.1 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.49.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.49.0 // indirect
 	go.opentelemetry.io/otel v1.24.0 // indirect
 	go.opentelemetry.io/otel/metric v1.24.0 // indirect
 	go.opentelemetry.io/otel/trace v1.24.0 // indirect
-	golang.org/x/mod v0.16.0 // indirect
+	golang.org/x/mod v0.17.0 // indirect
 	golang.org/x/net v0.24.0 // indirect
-	golang.org/x/sync v0.7.0 // indirect
-	golang.org/x/sys v0.19.0 // indirect
-	golang.org/x/term v0.19.0 // indirect
-	golang.org/x/text v0.14.0 // indirect
+	golang.org/x/sync v0.8.0 // indirect
+	golang.org/x/sys v0.23.0 // indirect
+	golang.org/x/term v0.23.0 // indirect
+	golang.org/x/text v0.17.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	google.golang.org/appengine/v2 v2.0.2 // indirect
 	google.golang.org/genproto v0.0.0-20240227224415-6ceb2ff114de // indirect
@@ -110,7 +88,6 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240415180920-8c6c420018be // indirect
 	google.golang.org/grpc v1.63.2 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
-	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
