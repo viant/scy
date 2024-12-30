@@ -22,6 +22,7 @@ func (g *Generic) Cipher(ctx context.Context, key *kms.Key) error {
 	if g.Secret != "" {
 		return g.SecretKey.Cipher(ctx, key)
 	}
+
 	return nil
 }
 

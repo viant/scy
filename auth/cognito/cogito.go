@@ -28,10 +28,12 @@ type (
 )
 
 func (s *Service) secretHash(username string) string {
-	mac := hmac.New(sha256.New, []byte(s.config.Client.Secret))
-	mac.Write([]byte(username + s.config.Client.Id))
+	mac := hmac.New(sha256.New, []byte(s.config.Client.Secret)) // Key: ClientSecret
+	mac.Write([]byte(username + s.config.Client.Id))            // Message: username + ClientId
 	return base64.StdEncoding.EncodeToString(mac.Sum(nil))
 }
+
+//InitiateBasicAuth initiates basic auth
 
 func (s *Service) InitiateBasicAuth(username, password string) (*auth.Token, error) {
 	input := &cognitoidentityprovider.InitiateAuthInput{
@@ -67,8 +69,45 @@ func (s *Service) InitiateBasicAuth(username, password string) (*auth.Token, err
 	}
 	return token, nil
 }
+func (s *Service) ReissueIdentityToken(ctx context.Context, refreshToken string, subject string) (*auth.Token, error) {
+	authParams := map[string]*string{
+		"REFRESH_TOKEN": aws.String(refreshToken),
+		"USERNAME":      aws.String(subject), //use token subject instead of username
+	}
+	if s.config.Client.Secret != "" {
+		authParams["SECRET_HASH"] = aws.String(s.secretHash(subject))
+	}
 
-//VerifyIdentity verifies identity token, it returns jwt claims
+	input := &cognitoidentityprovider.InitiateAuthInput{
+		AuthFlow:       aws.String("REFRESH_TOKEN_AUTH"),
+		AuthParameters: authParams,
+		ClientId:       aws.String(s.config.Client.Id),
+	}
+
+	output, err := s.client.InitiateAuthWithContext(ctx, input)
+	if err != nil {
+		return nil, fmt.Errorf("failed to reissue identity token: %w", err)
+	}
+
+	token := &auth.Token{}
+	if res := output.AuthenticationResult; res != nil {
+		if value := res.AccessToken; value != nil {
+			token.AccessToken = *value
+		}
+		if value := res.TokenType; value != nil {
+			token.TokenType = *value
+		}
+		if value := res.IdToken; value != nil {
+			token.IDToken = *value
+		}
+		if value := res.ExpiresIn; value != nil {
+			token.Expiry = time.Now().Add(time.Duration(*value) * time.Second)
+		}
+	}
+	return token, nil
+}
+
+// VerifyIdentity verifies identity token, it returns jwt claims
 func (s *Service) VerifyIdentity(ctx context.Context, rawToken string) (*sjwt.Claims, error) {
 
 	token, err := s.verifier.Validate(ctx, rawToken)
@@ -85,7 +124,7 @@ func (s *Service) VerifyIdentity(ctx context.Context, rawToken string) (*sjwt.Cl
 	return claims, err
 }
 
-//New creates new cogito auth service
+// New creates new cogito auth service
 func New(ctx context.Context, config *Config) (*Service, error) {
 	config.Init()
 	if config.Resource != nil {
