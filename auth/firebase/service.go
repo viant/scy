@@ -202,6 +202,22 @@ func New(ctx context.Context, config *Config, options ...option.ClientOption) (*
 		config.Config = &firebase.Config{}
 	}
 
+	if config.Secrets != nil {
+		secretService := scy.New()
+		config.Secrets.SetTarget(reflect.TypeOf(cred.Generic{}))
+		// Decode the scy resource
+		secret, err := secretService.Load(ctx, config.Secrets)
+		if err != nil {
+			return nil, err
+		}
+		if config.Config == nil {
+			config.Config = &firebase.Config{}
+		}
+		generic := secret.Target.(*cred.Generic)
+		options = append(options, option.WithCredentialsJSON([]byte(secret.String())))
+		config.ServiceAccountID = generic.JwtConfig.ClientEmail
+		config.Config.ProjectID = generic.JwtConfig.ProjectID
+	}
 	app, err := firebase.NewApp(ctx, config.Config, options...)
 	if err != nil {
 		return nil, err

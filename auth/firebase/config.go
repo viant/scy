@@ -8,5 +8,6 @@ import (
 // Config represents firebase config
 type Config struct {
 	*firebase.Config
+	Secrets   *scy.Resource
 	WebAPIKey *scy.Resource
 }
