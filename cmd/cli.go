@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	cfirebase "firebase.google.com/go/v4"
 	"fmt"
 	"github.com/jessevdk/go-flags"
 	"github.com/viant/afs"
@@ -137,7 +136,7 @@ func VerifyFirebaseJwtClaim(ctx context.Context, options *Options) error {
 
 func newFirebaseIdentity(ctx context.Context, options *Options, gcpService *gcp.Service) (*firebase.Service, error) {
 	var opts []option.ClientOption
-	cfg := &cfirebase.Config{}
+	cfg := &firebase.Config{}
 	if gcpService.ProjectID(ctx) == "" {
 		if options.ProjectId != "" {
 			cfg.ProjectID = options.ProjectId

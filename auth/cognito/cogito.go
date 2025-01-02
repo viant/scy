@@ -33,8 +33,7 @@ func (s *Service) secretHash(username string) string {
 	return base64.StdEncoding.EncodeToString(mac.Sum(nil))
 }
 
-//InitiateBasicAuth initiates basic auth
-
+// InitiateBasicAuth initiates basic auth
 func (s *Service) InitiateBasicAuth(username, password string) (*auth.Token, error) {
 	input := &cognitoidentityprovider.InitiateAuthInput{
 		AuthFlow: aws.String(s.config.AuthFlow),
@@ -69,6 +68,8 @@ func (s *Service) InitiateBasicAuth(username, password string) (*auth.Token, err
 	}
 	return token, nil
 }
+
+// ReissueIdentityToken reissues identity token
 func (s *Service) ReissueIdentityToken(ctx context.Context, refreshToken string, subject string) (*auth.Token, error) {
 	authParams := map[string]*string{
 		"REFRESH_TOKEN": aws.String(refreshToken),
@@ -109,7 +110,6 @@ func (s *Service) ReissueIdentityToken(ctx context.Context, refreshToken string,
 
 // VerifyIdentity verifies identity token, it returns jwt claims
 func (s *Service) VerifyIdentity(ctx context.Context, rawToken string) (*sjwt.Claims, error) {
-
 	token, err := s.verifier.Validate(ctx, rawToken)
 	if err != nil {
 		return nil, err
@@ -143,11 +143,12 @@ func New(ctx context.Context, config *Config) (*Service, error) {
 	if err != nil {
 		return nil, err
 	}
-	certURL := fmt.Sprintf("https://cognito-idp.%v.amazonaws.com/%v/.well-known/jwks.json", config.Client.Region, config.PoolID)
+	certURL := fmt.Sprintf("https://cognito-idp.%v.amazonaws.com/%v/.well-known/jwks.json", config.Client.Region, config.Client.PoolId)
 	validator := verifier.New(&verifier.Config{CertURL: certURL})
 	if err = validator.Init(ctx); err != nil {
 		return nil, err
 	}
+
 	return &Service{
 		client:   cognitoidentityprovider.New(sess),
 		config:   config,

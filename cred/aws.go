@@ -4,6 +4,7 @@ package cred
 type (
 	Aws struct {
 		Id       string      `json:",omitempty"`
+		PoolId   string      `json:",omitempty"`
 		Endpoint string      `json:",omitempty"`
 		Region   string      `json:",omitempty"`
 		Token    string      `json:",omitempty"`

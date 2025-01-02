@@ -8,7 +8,6 @@ import (
 
 type Config struct {
 	Client   *cred.Aws
-	PoolID   string
 	Resource *scy.Resource
 	AuthFlow string
 }
@@ -22,10 +21,6 @@ func (c *Config) Init() {
 func (c *Config) Validate() error {
 	if c.Client == nil {
 		return fmt.Errorf("client was empty")
-	}
-	if c.PoolID == "" {
-		return fmt.Errorf("PoolID was empty")
-
 	}
 	return nil
 }
