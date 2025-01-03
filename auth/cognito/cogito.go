@@ -49,7 +49,7 @@ func (s *Service) InitiateBasicAuth(username, password string) (*auth.Token, err
 		return nil, err
 	}
 	if output.ChallengeName != nil {
-		return nil, auth.NewChallenge(*output.ChallengeName)
+		return nil, auth.NewChallengeError(*output.ChallengeName)
 	}
 	token := &auth.Token{}
 	if res := output.AuthenticationResult; res != nil {
@@ -158,7 +158,6 @@ func New(ctx context.Context, config *Config) (*Service, error) {
 		verifier: validator,
 	}, nil
 }
-
 
 // ResetCredentials resets a user's credentials
 func (s *Service) ResetCredentials(username, newPassword string) error {

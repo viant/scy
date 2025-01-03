@@ -12,6 +12,7 @@ import (
 	sjwt "github.com/viant/scy/auth/jwt"
 	"github.com/viant/scy/cred"
 	"golang.org/x/oauth2"
+	"google.golang.org/api/googleapi"
 	"google.golang.org/api/identitytoolkit/v3"
 	"google.golang.org/api/option"
 	"io"
@@ -38,6 +39,18 @@ func (s *Service) InitiateBasicAuth(ctx context.Context, username, password stri
 	}
 	resp, err := s.identity.Relyingparty.VerifyPassword(req).Context(ctx).Do()
 	if err != nil {
+		// Check for specific Firebase error codes or messages
+		if apiError, ok := err.(*googleapi.Error); ok {
+			switch apiError.Code {
+			case http.StatusBadRequest:
+				if apiError.Message == "USER_DISABLED" {
+					return nil, fmt.Errorf("account is disabled")
+				}
+				if apiError.Message == "RESET_PASSWORD_REQUIRED" {
+					return nil, sauth.NewChallengeError(sauth.NewPasswordRequired)
+				}
+			}
+		}
 		return nil, err
 	}
 	expiredAt := time.Now().Add(time.Duration(resp.ExpiresIn) * time.Second)
@@ -206,7 +219,6 @@ func (s *Service) ResetCredentials(ctx context.Context, email, newPassword strin
 	}
 	return nil
 }
-
 
 func New(ctx context.Context, config *Config, options ...option.ClientOption) (*Service, error) {
 	if config.Config == nil {
