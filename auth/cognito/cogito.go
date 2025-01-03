@@ -48,6 +48,9 @@ func (s *Service) InitiateBasicAuth(username, password string) (*auth.Token, err
 	if err != nil {
 		return nil, err
 	}
+	if output.ChallengeName != nil {
+		return nil, auth.NewChallenge(*output.ChallengeName)
+	}
 	token := &auth.Token{}
 	if res := output.AuthenticationResult; res != nil {
 		if value := res.AccessToken; value != nil {
@@ -154,4 +157,22 @@ func New(ctx context.Context, config *Config) (*Service, error) {
 		config:   config,
 		verifier: validator,
 	}, nil
+}
+
+
+// ResetCredentials resets a user's credentials
+func (s *Service) ResetCredentials(username, newPassword string) error {
+	input := &cognitoidentityprovider.AdminSetUserPasswordInput{
+		UserPoolId: aws.String(s.config.Client.PoolId),
+		Username:   aws.String(username),
+		Password:   aws.String(newPassword),
+		Permanent:  aws.Bool(true),
+	}
+
+	_, err := s.client.AdminSetUserPassword(input)
+	if err != nil {
+		return fmt.Errorf("failed to reset credentials: %w", err)
+	}
+
+	return nil
 }

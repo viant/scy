@@ -67,7 +67,6 @@ func (s *Service) ensureApiKey(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to load Web API key secret: %w", err)
 	}
-
 	genericCred, ok := secret.Target.(*cred.Generic)
 	if !ok {
 		return fmt.Errorf("invalid Web API key secret type: %T", secret.Target)
@@ -196,6 +195,18 @@ func (s *Service) VerifyIdentity(ctx context.Context, rawToken string) (*sjwt.Cl
 	}
 	return result, nil
 }
+
+func (s *Service) ResetCredentials(ctx context.Context, email, newPassword string) error {
+	req := &identitytoolkit.IdentitytoolkitRelyingpartySetAccountInfoRequest{
+		Email:    email,
+		Password: newPassword,
+	}
+	if _, err := s.identity.Relyingparty.SetAccountInfo(req).Context(ctx).Do(); err != nil {
+		return fmt.Errorf("failed to reset credentials for %s: %w", email, err)
+	}
+	return nil
+}
+
 
 func New(ctx context.Context, config *Config, options ...option.ClientOption) (*Service, error) {
 	if config.Config == nil {
