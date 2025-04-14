@@ -18,6 +18,7 @@ type Claims struct {
 	Scope         string      `json:"scope,omitempty"`
 	Cognito       string      `json:"cognito,omitempty"`
 	VerifiedEmail bool        `json:"verified_email,omitempty"`
+	Type          string      `json:"typ,omitempty"`
 	Data          interface{} `json:"dat,omitempty"`
 	jwt.RegisteredClaims
 }
