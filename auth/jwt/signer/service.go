@@ -5,11 +5,13 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/viant/scy"
 	jwt2 "github.com/viant/scy/auth/jwt"
 	"time"
 )
+
+type TokenOption func(token *jwt.Token)
 
 type Service struct {
 	config *Config
@@ -17,7 +19,7 @@ type Service struct {
 	hmac   []byte
 }
 
-func (s Service) Create(ttl time.Duration, content interface{}) (string, error) {
+func (s Service) Create(ttl time.Duration, content interface{}, options ...TokenOption) (string, error) {
 	now := time.Now().UTC()
 	claims := &jwt2.Claims{}
 	if content != nil {
@@ -43,11 +45,15 @@ func (s Service) Create(ttl time.Duration, content interface{}) (string, error) 
 		signingMethod = jwt.SigningMethodHS512
 		key = s.hmac
 	}
-	token, err := jwt.NewWithClaims(signingMethod, claims).SignedString(key)
+	token := jwt.NewWithClaims(signingMethod, claims)
+	for _, option := range options {
+		option(token)
+	}
+	signed, err := token.SignedString(key)
 	if err != nil {
 		return "", fmt.Errorf("create: sign token: %w", err)
 	}
-	return token, nil
+	return signed, nil
 }
 
 func (s *Service) Init(ctx context.Context) error {

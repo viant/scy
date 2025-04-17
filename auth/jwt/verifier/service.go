@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/viant/scy"
 	sjwt "github.com/viant/scy/auth/jwt"
 	"github.com/viant/scy/auth/jwt/cache"
@@ -17,7 +17,7 @@ type Service struct {
 	config *Config
 }
 
-//Validate checks if  jwt token is valid
+// Validate checks if  jwt token is valid
 func (s *Service) Validate(ctx context.Context, tokenString string) (*jwt.Token, error) {
 	if s.config.CertURL != "" {
 		return s.validateWithCert(ctx, tokenString)

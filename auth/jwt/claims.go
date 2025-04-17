@@ -3,8 +3,10 @@ package jwt
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 )
+
+type TokenOption func(*jwt.Token)
 
 // Claims represents JWT claim
 type Claims struct {
@@ -18,7 +20,7 @@ type Claims struct {
 	Scope         string      `json:"scope,omitempty"`
 	Cognito       string      `json:"cognito,omitempty"`
 	VerifiedEmail bool        `json:"verified_email,omitempty"`
-	Type          string      `json:"typ,omitempty"`
+	Nonce         string      `json:"nonce,omitempty"`
 	Data          interface{} `json:"dat,omitempty"`
 	jwt.RegisteredClaims
 }

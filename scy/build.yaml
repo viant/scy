@@ -6,13 +6,8 @@ init:
   Ver: $Cat(${appPath}/Version)
 
 pipeline:
-  set_sdk:
-    action: sdk.set
-    target: $target
-    sdk: go:1.23
   build:
     action: exec:run
-    target: $target
     checkError: true
     commands:
       - cd ${appPath}/scy
