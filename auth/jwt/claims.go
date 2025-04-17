@@ -21,6 +21,7 @@ type Claims struct {
 	Cognito       string      `json:"cognito,omitempty"`
 	VerifiedEmail bool        `json:"verified_email,omitempty"`
 	Nonce         string      `json:"nonce,omitempty"`
+	AtHash        string      `json:"at_hash,omitempty"`
 	Data          interface{} `json:"dat,omitempty"`
 	jwt.RegisteredClaims
 }
