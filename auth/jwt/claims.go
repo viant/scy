@@ -1,9 +1,11 @@
 package jwt
 
 import (
+	"crypto/subtle"
 	"encoding/json"
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
+	"time"
 )
 
 type TokenOption func(*jwt.Token)
@@ -24,6 +26,48 @@ type Claims struct {
 	AtHash        string      `json:"at_hash,omitempty"`
 	Data          interface{} `json:"dat,omitempty"`
 	jwt.RegisteredClaims
+}
+
+func (c *Claims) VerifyExpiresAt(cmp time.Time, req bool) bool {
+	if c.ExpiresAt == nil {
+		return verifyExp(nil, cmp, req)
+	}
+
+	return verifyExp(&c.ExpiresAt.Time, cmp, req)
+}
+
+func verifyExp(exp *time.Time, now time.Time, required bool) bool {
+	if exp == nil {
+		return !required
+	}
+	return now.Before(*exp)
+}
+
+func (c *Claims) VerifyAudience(cmp string, req bool) bool {
+	return verifyAud(c.Audience, cmp, req)
+}
+
+func verifyAud(aud []string, cmp string, required bool) bool {
+	if len(aud) == 0 {
+		return !required
+	}
+	// use a var here to keep constant time compare when looping over a number of claims
+	result := false
+
+	var stringClaims string
+	for _, a := range aud {
+		if subtle.ConstantTimeCompare([]byte(a), []byte(cmp)) != 0 {
+			result = true
+		}
+		stringClaims = stringClaims + a
+	}
+
+	// case where "" is sent in one or many aud claims
+	if len(stringClaims) == 0 {
+		return !required
+	}
+
+	return result
 }
 
 // NewClaim returns jwt claim from token
