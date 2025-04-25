@@ -24,7 +24,9 @@ func NewGCloud() *gcp.Client {
 	if sdkClient != nil {
 		return sdkClient
 	}
-	sdkClient, _ = loadEncryptedClient(gcloudEnc)
+	var temp = make([]byte, len(gcloudEnc))
+	copy(temp, gcloudEnc)
+	sdkClient, _ = loadEncryptedClient(temp)
 	return sdkClient
 }
 
@@ -35,11 +37,9 @@ func NewScy() *gcp.Client {
 	if scyClient != nil {
 		return scyClient
 	}
-	var err error
-	scyClient, err = loadEncryptedClient(scyEnc)
-	if err != nil {
-		fmt.Printf("%v\n", err)
-	}
+	var temp = make([]byte, len(scyEnc))
+	copy(temp, scyEnc)
+	scyClient, _ = loadEncryptedClient(temp)
 	return scyClient
 }
 

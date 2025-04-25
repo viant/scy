@@ -33,9 +33,11 @@ func (s *Service) Config(ctx context.Context, scopes ...string) *oauth2.Config {
 
 // AuthClient returns auth  HTTP client
 func (s *Service) AuthClient(ctx context.Context, scopes ...string) (*http.Client, error) {
-	if client, _ := google.DefaultClient(ctx, scopes...); client != nil {
+	client, _ := google.DefaultClient(ctx, scopes...)
+	if client != nil {
 		return client, nil
 	}
+
 	token, err := s.Auth(ctx, scopes...)
 	if err != nil {
 		return nil, err
