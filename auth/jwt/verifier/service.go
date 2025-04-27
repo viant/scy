@@ -2,17 +2,21 @@ package verifier
 
 import (
 	"context"
+	"crypto/rsa"
 	"encoding/base64"
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/viant/scy"
 	sjwt "github.com/viant/scy/auth/jwt"
 	"github.com/viant/scy/auth/jwt/cache"
+	"sync"
 )
 
 type Service struct {
-	key    []byte
-	hmac   []byte
+	keys       [][]byte
+	hmac       []byte
+	publicKeys map[string]*rsa.PublicKey
+	sync.RWMutex
 	cache  *cache.Cache
 	config *Config
 }
@@ -41,11 +45,37 @@ func (s *Service) ValidaToken(ctx context.Context, tokenString string) (*jwt.Tok
 	return token, nil
 }
 
+func (s *Service) LookupPublicKey(ctx context.Context, tokenString string) (*rsa.PublicKey, error) {
+	publicKeys, err := s.PublicKeys()
+	if err != nil {
+		return nil, err
+	}
+	if len(s.publicKeys) == 1 {
+		for _, candidate := range publicKeys {
+			return candidate, nil
+		}
+	}
+
+	unsafeToken, _, err := new(jwt.Parser).ParseUnverified(tokenString, jwt.MapClaims{})
+	if err != nil {
+		return nil, err
+	}
+	kid, ok := unsafeToken.Header["kid"].(string)
+	if !ok {
+		return nil, fmt.Errorf("kid header not found")
+	}
+	key, ok := publicKeys[kid]
+	if ok {
+		return key, nil
+	}
+	return nil, fmt.Errorf("key %v not found", kid)
+}
+
 func (s *Service) validateWithPublicKey(tokenString string) (*jwt.Token, error) {
 
 	token, err := jwt.Parse(tokenString, func(jwtToken *jwt.Token) (interface{}, error) {
 		if _, ok := jwtToken.Method.(*jwt.SigningMethodRSA); ok {
-			return jwt.ParseRSAPublicKeyFromPEM(s.key)
+			return s.LookupPublicKey(context.Background(), tokenString)
 		}
 		if _, ok := jwtToken.Method.(*jwt.SigningMethodHMAC); ok {
 			return s.hmac, nil
@@ -56,6 +86,33 @@ func (s *Service) validateWithPublicKey(tokenString string) (*jwt.Token, error) 
 		return nil, fmt.Errorf("failed to parse token: %w", err)
 	}
 	return token, nil
+}
+
+func (s *Service) PublicKeys() (map[string]*rsa.PublicKey, error) {
+	s.RLock()
+	publicKeys := s.publicKeys
+	s.RUnlock()
+	if len(publicKeys) > 0 {
+		return publicKeys, nil
+	}
+	s.Lock()
+	defer s.Unlock()
+	if len(publicKeys) > 0 {
+		return s.publicKeys, nil
+	}
+	var err error
+	for _, key := range s.keys {
+		publicKey, err := jwt.ParseRSAPublicKeyFromPEM(key)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse public key: %w", err)
+		}
+		kid, err := sjwt.GenerateKid(publicKey)
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate kid: %w", err)
+		}
+		s.publicKeys[kid] = publicKey
+	}
+	return s.publicKeys, err
 }
 
 func (s *Service) validateWithCert(ctx context.Context, tokenString string) (*jwt.Token, error) {
@@ -70,7 +127,7 @@ func (s *Service) validateWithCert(ctx context.Context, tokenString string) (*jw
 		}
 		keys, ok := keySet.LookupKeyID(kid)
 		if !ok {
-			return nil, fmt.Errorf("key %v not found", kid)
+			return nil, fmt.Errorf("keys %v not found", kid)
 		}
 		var publicKey interface{}
 		err = keys.Raw(&publicKey)
@@ -83,14 +140,15 @@ func (s *Service) validateWithCert(ctx context.Context, tokenString string) (*jw
 }
 
 func (s *Service) Init(ctx context.Context) error {
-	if s.config.RSA != nil && s.config.RSA.URL != "" {
+	for _, resource := range s.config.RSA {
 		scySrv := scy.New()
-		secret, err := scySrv.Load(ctx, s.config.RSA)
+		secret, err := scySrv.Load(ctx, resource)
 		if err != nil {
 			return err
 		}
-		s.key = []byte(secret.String())
+		s.keys = append(s.keys, []byte(secret.String()))
 	}
+
 	if s.config.HMAC != nil && s.config.HMAC.URL != "" {
 		scySrv := scy.New()
 		secret, err := scySrv.Load(ctx, s.config.HMAC)
@@ -105,5 +163,5 @@ func (s *Service) Init(ctx context.Context) error {
 }
 
 func New(config *Config) *Service {
-	return &Service{config: config, cache: cache.New()}
+	return &Service{config: config, cache: cache.New(), publicKeys: make(map[string]*rsa.PublicKey), keys: make([][]byte, 0)}
 }

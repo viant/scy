@@ -28,7 +28,7 @@ func TestNew(t *testing.T) {
 		{
 			description:    "valid token with rsa",
 			config:         &signer.Config{RSA: &scy.Resource{URL: path.Join(baseLocation, "testdata/private.scy"), Key: "blowfish://default"}},
-			verifierConfig: &Config{RSA: &scy.Resource{URL: path.Join(baseLocation, "testdata/public.scy"), Key: "blowfish://default"}},
+			verifierConfig: &Config{RSA: []*scy.Resource{&scy.Resource{URL: path.Join(baseLocation, "testdata/public.scy"), Key: "blowfish://default"}}},
 			expiry:         time.Hour,
 			isValid:        true,
 			data: struct {
@@ -54,7 +54,7 @@ func TestNew(t *testing.T) {
 		{
 			description:    "expired token",
 			config:         &signer.Config{RSA: &scy.Resource{URL: path.Join(baseLocation, "testdata/private.scy"), Key: "blowfish://default"}},
-			verifierConfig: &Config{RSA: &scy.Resource{URL: path.Join(baseLocation, "testdata/public.scy"), Key: "blowfish://default"}},
+			verifierConfig: &Config{RSA: []*scy.Resource{{URL: path.Join(baseLocation, "testdata/public.scy"), Key: "blowfish://default"}}},
 			expiry:         -time.Hour,
 			isValid:        false,
 
@@ -66,7 +66,7 @@ func TestNew(t *testing.T) {
 		},
 	}
 
-	//jwtVerifier := New(&Config{HMAC: &scy.Resource{URL: path.Join(baseLocation, "testdata/key.txt")}})
+	//jwtVerifier := New(&Config{HMAC: &scy.Resource{URL: path.Join(baseLocation, "testdata/keys.txt")}})
 	//
 	//err := jwtVerifier.Init(context.Background())
 	//if err != nil {
