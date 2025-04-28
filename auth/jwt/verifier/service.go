@@ -121,10 +121,7 @@ func (s *Service) validateWithCert(ctx context.Context, tokenString string) (*jw
 		return nil, err
 	}
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		kid, ok := token.Header["kid"].(string)
-		if !ok {
-			return nil, fmt.Errorf("kid header not found")
-		}
+		kid, _ := token.Header["kid"].(string)
 		keys, ok := keySet.LookupKeyID(kid)
 		if !ok {
 			return nil, fmt.Errorf("keys %v not found", kid)
