@@ -8,8 +8,13 @@ type Document struct {
 	UserinfoEndpoint                  string   `json:"userinfo_endpoint,omitempty"`
 	ResponseTypesSupported            []string `json:"response_types_supported"`
 	SubjectTypesSupported             []string `json:"subject_types_supported"`
+	CodeChallengeMethodsSupported     []string `json:"code_challenge_methods_supported"`
+	GrantTypeSupported                []string `json:"grant_types_supported"`
 	IDTokenSigningAlgValuesSupported  []string `json:"id_token_signing_alg_values_supported"`
 	ScopesSupported                   []string `json:"scopes_supported,omitempty"`
 	TokenEndpointAuthMethodsSupported []string `json:"token_endpoint_auth_methods_supported,omitempty"`
 	ClaimsSupported                   []string `json:"claims_supported,omitempty"`
+	PKCERequired                      bool     `json:"pkce_required,omitempty"`
+	Version                           string   `json:"oauth_version,omitempty"`
 }
+

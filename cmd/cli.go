@@ -88,10 +88,9 @@ func VerifyJwtClaim(options *Options) error {
 	if options.Firebase {
 		return VerifyFirebaseJwtClaim(context.Background(), options)
 	}
-	jwtVerifier := verifier.New(&verifier.Config{RSA: &scy.Resource{
-		URL: options.RSAKey,
+	jwtVerifier := verifier.New(&verifier.Config{RSA: []*scy.Resource{{URL: options.RSAKey,
 		Key: options.Key,
-	}, HMAC: &scy.Resource{
+	}}, HMAC: &scy.Resource{
 		URL: options.HMacKey,
 		Key: options.Key,
 	}})

@@ -12,6 +12,7 @@ import (
 	"github.com/viant/afs/file"
 	"github.com/viant/scy/auth"
 	"github.com/viant/scy/auth/browser"
+	client2 "github.com/viant/scy/auth/client"
 	"github.com/viant/scy/auth/endpoint"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -23,7 +24,7 @@ import (
 )
 
 type Service struct {
-	client *Client
+	client *client2.Client
 	fs     afs.Service
 }
 
@@ -154,7 +155,7 @@ func (s *Service) tokenWithBrowserFlow(scopes []string) (*auth.Token, error) {
 }
 
 func (s *Service) storeToken(token *auth.Token) error {
-	tokenURL := s.client.localTokenURL()
+	tokenURL := s.client.LocalTokenURL()
 	data, err := json.Marshal(token)
 	if err != nil {
 		return err
@@ -163,7 +164,7 @@ func (s *Service) storeToken(token *auth.Token) error {
 }
 
 func (s *Service) loadCachedToken() (*auth.Token, error) {
-	tokenURL := s.client.localTokenURL()
+	tokenURL := s.client.LocalTokenURL()
 	data, err := s.fs.DownloadWithURL(context.Background(), tokenURL)
 	if err != nil {
 		return nil, err
@@ -179,7 +180,7 @@ func (s *Service) loadCachedToken() (*auth.Token, error) {
 	return token, nil
 }
 
-func New(client *Client) *Service {
+func New(client *client2.Client) *Service {
 	return &Service{client: client, fs: afs.New()}
 }
 
