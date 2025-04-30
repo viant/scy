@@ -1,20 +1,14 @@
 package endpoint
 
 import (
+	_ "embed"
+
 	"net/http"
-	"net/url"
+	_ "embed"
 )
 
-var content = `<!DOCTYPE html>
-<html>
-   <head>
-      	<title>HTML Meta Tag</title>
-		<meta http-equiv="refresh" content="0; url='https://github.com/viant/scy'" />
-     </head>
-   <body>
-      <p>Scy OAuth Client</p>
-   </body>
-</html>`
+//go:embed asset/success.html
+var content string
 
 type httpHandler struct {
 	values url.Values
