@@ -16,7 +16,7 @@ type Options struct {
 	DestURL   string `short:"d" long:"dest" description:"dest location"`
 	ExpirySec int    `short:"e" long:"expiry" description:"expiry TTL in sec"`
 	Firebase  bool   `short:"f" long:"firebase" description:"firebase"`
-	Target    string `short:"t" long:"target" default:"raw" choice:"raw" choice:"basic"  choice:"sha1" choice:"aws" choice:"ssh" choice:"generic"  choice:"jwt" choice:"key" description:"target type"`
+	Target    string `short:"t" long:"target" default:"raw" choice:"raw" choice:"basic"  choice:"sha1" choice:"aws" choice:"ssh" choice:"generic"  choice:"jwt" choice:"oauth2" choice:"key" description:"target type"`
 	Key       string `short:"k" long:"key" description:"key i.e blowfish://default"`
 	ProjectId string `short:"p" long:"projectId" description:"project id"`
 }

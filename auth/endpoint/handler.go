@@ -2,9 +2,9 @@ package endpoint
 
 import (
 	_ "embed"
+	"net/url"
 
 	"net/http"
-	_ "embed"
 )
 
 //go:embed asset/success.html

@@ -23,6 +23,8 @@ func TargetType(target string) (reflect.Type, error) {
 		result = reflect.TypeOf(SSH{})
 	case "generic":
 		result = reflect.TypeOf(Generic{})
+	case "oauth2":
+		result = reflect.TypeOf(Oauth2Config{})
 	case "", "raw":
 
 	default:

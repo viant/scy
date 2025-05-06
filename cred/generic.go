@@ -10,6 +10,7 @@ type Generic struct {
 	SSH
 	JwtConfig
 	Aws
+	Oauth2Config
 }
 
 func (g *Generic) Cipher(ctx context.Context, key *kms.Key) error {
@@ -22,7 +23,6 @@ func (g *Generic) Cipher(ctx context.Context, key *kms.Key) error {
 	if g.Secret != "" {
 		return g.SecretKey.Cipher(ctx, key)
 	}
-
 	return nil
 }
 
