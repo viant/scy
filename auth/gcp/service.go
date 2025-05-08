@@ -7,32 +7,33 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/pkg/errors"
 	"github.com/viant/afs"
 	"github.com/viant/afs/file"
 	"github.com/viant/scy/auth"
-	"github.com/viant/scy/auth/browser"
-	client2 "github.com/viant/scy/auth/client"
-	"github.com/viant/scy/auth/endpoint"
+	"github.com/viant/scy/auth/flow"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/idtoken"
 	"math/rand"
 	"net/http"
 	"os"
+	"path"
 	"time"
 )
 
 type Service struct {
-	client *client2.Client
-	fs     afs.Service
+	config   *oauth2.Config
+	fs       afs.Service
+	authFlow flow.AuthFlow
 }
 
-func (s *Service) Config(ctx context.Context, scopes ...string) *oauth2.Config {
-	return s.client.Config("", scopes...)
+func (s *Service) Config(scopes ...string) *oauth2.Config {
+	config := *s.config
+	config.Scopes = append(config.Scopes, scopes...)
+	return &config
 }
 
-// AuthClient returns auth  HTTP client
+// AuthClient returns auth  HTTP config
 func (s *Service) AuthClient(ctx context.Context, scopes ...string) (*http.Client, error) {
 	client, _ := google.DefaultClient(ctx, scopes...)
 	if client != nil {
@@ -43,11 +44,12 @@ func (s *Service) AuthClient(ctx context.Context, scopes ...string) (*http.Clien
 	if err != nil {
 		return nil, err
 	}
-	tokenSource := s.client.Config("", scopes...).TokenSource(ctx, &token.Token)
+	oauth2Config := s.Config(scopes...)
+	tokenSource := oauth2Config.TokenSource(ctx, &token.Token)
 	return oauth2.NewClient(ctx, tokenSource), nil
 }
 
-// IDClient returns identity token HTTP client
+// IDClient returns identity token HTTP config
 func (s *Service) IDClient(ctx context.Context, audience string, scopes ...string) (*http.Client, error) {
 	if len(scopes) == 0 {
 		scopes = Scopes
@@ -56,7 +58,7 @@ func (s *Service) IDClient(ctx context.Context, audience string, scopes ...strin
 	if err != nil {
 		return nil, err
 	}
-	return s.Config(ctx, scopes...).Client(ctx, token), nil
+	return s.Config(scopes...).Client(ctx, token), nil
 }
 
 func (s *Service) ProjectID(ctx context.Context) string {
@@ -77,12 +79,11 @@ func (s *Service) IDToken(ctx context.Context, audience string, scopes ...string
 		scopes = Scopes
 	}
 	if credentials, _ := google.FindDefaultCredentials(ctx, scopes...); credentials != nil {
-		tokenSource, err := idtoken.NewTokenSource(ctx, audience)
+		tknSource, err := idtoken.NewTokenSource(ctx, audience)
 		if err != nil {
 			return nil, err
 		}
-
-		return tokenSource.Token()
+		return tknSource.Token()
 	}
 	if metadata.OnGCE() {
 		//try to use meta server
@@ -100,6 +101,7 @@ func (s *Service) TokenSource(scopes ...string) oauth2.TokenSource {
 }
 
 func (s *Service) Auth(ctx context.Context, scopes ...string) (*auth.Token, error) {
+	scopes = append(s.config.Scopes, scopes...)
 	if tokenSource, _ := google.DefaultTokenSource(ctx, scopes...); tokenSource != nil {
 		tkn, err := tokenSource.Token()
 		if err != nil {
@@ -113,49 +115,17 @@ func (s *Service) Auth(ctx context.Context, scopes ...string) (*auth.Token, erro
 	if token, _ := s.loadCachedToken(); token != nil {
 		return token, nil
 	}
-	return s.tokenWithBrowserFlow(scopes)
-}
-
-func (s *Service) tokenWithBrowserFlow(scopes []string) (*auth.Token, error) {
-	server, err := endpoint.New()
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed start auth callback endpoint")
-	}
-	redirectURL := fmt.Sprintf("http://localhost:%v/auth.html", server.Port)
-	config := s.client.Config(redirectURL, scopes...)
-	go server.Start()
-	state := randToken()
-	URL := config.AuthCodeURL(state)
-	cmd := browser.Open(URL)
-	var cmdError error
-	go func() {
-		if cmdError = cmd.Start(); cmdError != nil {
-			server.Close()
-		}
-	}()
-	if err = server.Wait(); err != nil {
-		return nil, errors.Wrap(err, "failed to handler auth")
-	}
-
-	code := server.AuthCode()
-	if code == "" && cmdError != nil {
-		return nil, err
-	}
-	if cmd.Process != nil {
-		_ = cmd.Process.Kill()
-	}
-	tkn, err := config.Exchange(context.TODO(), code)
+	tkn, err := s.authFlow.Token(ctx, s.config, flow.WithScopes(scopes...))
 	if err != nil {
 		return nil, err
 	}
 	token := &auth.Token{Token: *tkn}
 	token.PopulateIDToken()
-	_ = s.storeToken(token)
 	return token, nil
 }
 
 func (s *Service) storeToken(token *auth.Token) error {
-	tokenURL := s.client.LocalTokenURL()
+	tokenURL := localTokenURL(s.config)
 	data, err := json.Marshal(token)
 	if err != nil {
 		return err
@@ -163,8 +133,12 @@ func (s *Service) storeToken(token *auth.Token) error {
 	return s.fs.Upload(context.Background(), tokenURL, file.DefaultFileOsMode, bytes.NewReader(data))
 }
 
+func localTokenURL(config *oauth2.Config) string {
+	return path.Join(os.Getenv("HOME"), ".gcloud", config.ClientID)
+}
+
 func (s *Service) loadCachedToken() (*auth.Token, error) {
-	tokenURL := s.client.LocalTokenURL()
+	tokenURL := localTokenURL(s.config)
 	data, err := s.fs.DownloadWithURL(context.Background(), tokenURL)
 	if err != nil {
 		return nil, err
@@ -180,8 +154,8 @@ func (s *Service) loadCachedToken() (*auth.Token, error) {
 	return token, nil
 }
 
-func New(client *client2.Client) *Service {
-	return &Service{client: client, fs: afs.New()}
+func New(config *oauth2.Config) *Service {
+	return &Service{config: config, fs: afs.New(), authFlow: flow.NewBrowserFlow()}
 }
 
 func randToken() string {

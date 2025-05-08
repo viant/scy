@@ -5,7 +5,7 @@ import (
 	"runtime"
 )
 
-//Open returns command for opening browser
+// Open returns command for opening browser
 func Open(url string) *exec.Cmd {
 	var cmd string
 	var args []string
