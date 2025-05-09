@@ -1,9 +1,14 @@
 package scy
 
 import (
+	"context"
 	"fmt"
+	"github.com/viant/afs"
 	"github.com/viant/afs/storage"
+	"github.com/viant/afs/url"
+	"os"
 	"reflect"
+	"strings"
 	"time"
 )
 
@@ -70,4 +75,24 @@ func NewResource(target interface{}, URL, Key string) *Resource {
 		result.SetTarget(reflect.TypeOf(v))
 	}
 	return result
+}
+
+// EncodedResource is a string that encodes a resource
+type EncodedResource string
+
+func (e EncodedResource) Decode(ctx context.Context, target interface{}) *Resource {
+	URL := string(e)
+	key := ""
+	if index := strings.Index(URL, "|"); index != -1 {
+		key = URL[index+1:]
+		URL = URL[:index]
+	}
+	if url.IsRelative(URL) { //try to resolve relative URL
+		fs := afs.New()
+		candidate := url.Join(os.Getenv("HOME"), ".secret", URL)
+		if ok, _ := fs.Exists(ctx, candidate); ok {
+			URL = candidate
+		}
+	}
+	return NewResource(target, URL, key)
 }

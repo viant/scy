@@ -9,11 +9,11 @@ import (
 
 // Basic represents basic credentials
 type Basic struct {
-	Endpoint          interface{} `json:",omitempty"`
-	Email             string      `json:",omitempty"`
-	Username          string      `json:",omitempty"`
-	Password          string      `json:",omitempty"`
-	EncryptedPassword string      `json:",omitempty"`
+	Endpoint          string `json:",omitempty"`
+	Email             string `json:",omitempty"`
+	Username          string `json:",omitempty"`
+	Password          string `json:",omitempty"`
+	EncryptedPassword string `json:",omitempty"`
 }
 
 // Cipher ciphers password to encrypted password, clears password after that

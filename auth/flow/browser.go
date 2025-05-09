@@ -6,7 +6,6 @@ import (
 	"github.com/viant/scy/auth/flow/browser"
 	"github.com/viant/scy/auth/flow/endpoint"
 	"golang.org/x/oauth2"
-	"strings"
 )
 
 type BrowserFlow struct{}
@@ -44,12 +43,8 @@ func (s *BrowserFlow) Token(ctx context.Context, config *oauth2.Config, options 
 		return nil, fmt.Errorf("failed to find auth code")
 	}
 
-	scopes := append(config.Scopes, opts.scopes...)
-
 	// Create exchange options
 	exchangeOptions := []oauth2.AuthCodeOption{
-		oauth2.SetAuthURLParam("scope", strings.Join(scopes, " ")),
-		oauth2.SetAuthURLParam("state", opts.State()),
 		oauth2.SetAuthURLParam("redirect_uri", redirectURL),
 	}
 
@@ -59,6 +54,8 @@ func (s *BrowserFlow) Token(ctx context.Context, config *oauth2.Config, options 
 			oauth2.SetAuthURLParam("code_verifier", opts.codeVerifier),
 		)
 	}
+
+	config.Endpoint.AuthStyle = oauth2.AuthStyleInHeader
 
 	tkn, err := config.Exchange(ctx, code, exchangeOptions...)
 	if tkn == nil && err == nil {

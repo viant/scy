@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"golang.org/x/oauth2"
-	"strings"
 )
 
 type OutOfBandFlow struct{}
@@ -26,12 +25,9 @@ func (s *OutOfBandFlow) Token(ctx context.Context, config *oauth2.Config, option
 		return nil, fmt.Errorf("failed to fetch code from location header %v", err)
 	}
 
-	scopes := append(config.Scopes, opts.scopes...)
 
 	// Create exchange options
 	exchangeOptions := []oauth2.AuthCodeOption{
-		oauth2.SetAuthURLParam("scope", strings.Join(scopes, " ")),
-		oauth2.SetAuthURLParam("state", opts.State()),
 		oauth2.SetAuthURLParam("redirect_uri", redirectURL),
 	}
 

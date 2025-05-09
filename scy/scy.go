@@ -13,5 +13,5 @@ import (
 )
 
 func main() {
-	cmd.Run(os.Args[1:])
+	cmd.RunWithCommands(os.Args[1:])
 }

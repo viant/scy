@@ -1,81 +1,36 @@
 package cmd
 
-import (
-	"fmt"
-	"github.com/viant/scy/cred"
-	"os"
-	"path"
-	"strings"
-)
-
-type Options struct {
-	Mode      string `short:"m" long:"mode" choice:"secure"  choice:"reveal" choice:"signJwt" choice:"verifyJwt" choice:"auth"`
+type TypedSource struct {
 	SourceURL string `short:"s" long:"src" description:"source location"`
-	RSAKey    string `short:"r" long:"rsa" description:"private/public key location"`
-	HMacKey   string `short:"a" long:"hmac" description:"hmac key location (base64 encoded)"`
-	DestURL   string `short:"d" long:"dest" description:"dest location"`
-	ExpirySec int    `short:"e" long:"expiry" description:"expiry TTL in sec"`
-	Firebase  bool   `short:"f" long:"firebase" description:"firebase"`
 	Target    string `short:"t" long:"target" default:"raw" choice:"raw" choice:"basic"  choice:"sha1" choice:"aws" choice:"ssh" choice:"generic"  choice:"jwt" choice:"oauth2" choice:"key" description:"target type"`
-	Key       string `short:"k" long:"key" description:"key i.e blowfish://default"`
-	ProjectId string `short:"p" long:"projectId" description:"project id"`
 }
 
-func (o *Options) Validate() error {
-	tagetType, _ := cred.TargetType(o.Target)
-	switch o.Mode {
-	case "secure":
-		if tagetType != nil && o.SourceURL == "" {
-			switch o.Target {
-			case "basic", "key":
-			default:
-				return fmt.Errorf("src was empty")
-			}
-		}
-		if o.DestURL == "" {
-			return fmt.Errorf("dst was empty")
-		}
+// Options is the main command structure with command annotations
+type Options struct {
+	Secure    *SecureCmd     `command:"secure" description:"secures secrets"`
+	Reveal    *RevealCmd     `command:"reveal" description:"reveals secrets"`
+	SignJwt   *SignJwtCmd    `command:"signJwt" description:"sign JWT"`
+	VerifyJwt *VerifyJwtCmd  `command:"verifyJwt" description:"verify JWT"`
+	Authorize *AuthorizeCmd  `command:"authorize" description:"authorize using OAuth2"`
+}
+
+// Init normalizes file locations
+func (options *Options) Init(args string) {
+	switch args {
 	case "reveal":
-		if o.SourceURL == "" {
-			return fmt.Errorf("src was empty")
-		}
-	case "signJwt":
-		if o.RSAKey == "" && o.HMacKey == "" {
-			return fmt.Errorf("RSAKey/HMacKey were empty")
-		}
-		if o.SourceURL == "" {
-			return fmt.Errorf("src was empty")
-		}
+		options.Reveal = &RevealCmd{}
+		options.Reveal.Init()
+	case "secure":
+		options.Secure = &SecureCmd{}
+		options.Secure.Init()
 	case "verifyJwt":
-		if o.Firebase {
-
-		} else if o.RSAKey == "" && o.HMacKey == "" {
-			return fmt.Errorf("RSAKey/HMacKey was empty")
-		}
-		if o.SourceURL == "" {
-			return fmt.Errorf("src was empty")
-		}
-	case "":
-		return fmt.Errorf("mode was empty")
+		options.VerifyJwt = &VerifyJwtCmd{}
+		options.VerifyJwt.Init()
+	case "signJwt":
+		options.SignJwt = &SignJwtCmd{}
+		options.SignJwt.Init()
+	case "authorize":
+		options.Authorize = &AuthorizeCmd{}
+		options.Authorize.Init()
 	}
-	return nil
-}
-
-func (o *Options) Init() {
-	o.SourceURL = normalizeLocation(o.SourceURL)
-	o.DestURL = normalizeLocation(o.DestURL)
-}
-
-func normalizeLocation(location string) string {
-	if location == "" {
-		return ""
-	}
-	if strings.HasPrefix(location, "~") {
-		return os.Getenv("HOME") + location[1:]
-	}
-	if !strings.Contains(location, ":/") && !strings.HasPrefix(location, "/") {
-		cwd, _ := os.Getwd()
-		return path.Join(cwd, location)
-	}
-	return location
 }

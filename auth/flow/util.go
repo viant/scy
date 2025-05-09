@@ -48,7 +48,7 @@ func buildAuthCodeURL(redirectURL string, config *oauth2.Config, opts *Options) 
 			oauth2.SetAuthURLParam("code_challenge_method", "S256"),
 		)
 	}
-	scopes := append(config.Scopes, opts.scopes...)
+	scopes := opts.Scopes(config.Scopes...)
 	oauth2Options = append(oauth2Options, oauth2.SetAuthURLParam("scope", strings.Join(scopes, " ")))
 
 	for paramName, paramValue := range opts.authURLParams {
@@ -103,7 +103,11 @@ func postFormData(URL string, data map[string]string) (*http.Response, error) {
 		return nil, err
 	}
 	if resp.Body != nil {
-		io.ReadAll(resp.Body)
+		data, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+			fmt.Println(string(data))
+		}
 		resp.Body.Close()
 	}
 	return resp, nil

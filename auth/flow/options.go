@@ -9,9 +9,21 @@ type Options struct {
 	usePKCE       bool
 }
 
-func (o *Options) Scopes() []string {
-	return o.scopes
+
+
+func (o *Options) Scopes(scopes ...string) []string {
+	var dedupeScopes []string
+	var uniques = map[string]bool{}
+	scopes = append(o.scopes, scopes...)
+	for _, scope := range scopes {
+		if _, ok := uniques[scope]; !ok {
+			uniques[scope] = true
+			dedupeScopes = append(dedupeScopes, scope)
+		}
+	}
+	return dedupeScopes
 }
+
 
 func (o *Options) State() string {
 	if o.state != "" {
@@ -57,6 +69,14 @@ func WithAuthURLParam(key string, value string) Option {
 func WithPostParam(key string, value string) Option {
 	return func(o *Options) {
 		o.postParams[key] = value
+	}
+}
+
+func WithPostParams(values map[string]string) Option {
+	return func(o *Options) {
+		for k, v := range values {
+			o.postParams[k] = v
+		}
 	}
 }
 
