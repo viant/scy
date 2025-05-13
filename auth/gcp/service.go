@@ -39,7 +39,6 @@ func (s *Service) AuthClient(ctx context.Context, scopes ...string) (*http.Clien
 	if client != nil {
 		return client, nil
 	}
-
 	token, err := s.Auth(ctx, scopes...)
 	if err != nil {
 		return nil, err
@@ -121,6 +120,7 @@ func (s *Service) Auth(ctx context.Context, scopes ...string) (*auth.Token, erro
 	}
 	token := &auth.Token{Token: *tkn}
 	token.PopulateIDToken()
+	_ = s.storeToken(token)
 	return token, nil
 }
 
