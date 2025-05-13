@@ -1,11 +1,11 @@
 package auth
 
 import (
+	"context"
 	"fmt"
+	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/oauth2"
-	"reflect"
 	"time"
-	"unsafe"
 )
 
 type Token struct {
@@ -31,7 +31,7 @@ func (t *Token) IdentityToken() (*oauth2.Token, error) {
 }
 
 func (t *Token) PopulateIDToken() {
-	raw := t.Raw()
+	raw := t.Extra("id_token")
 	if raw == nil {
 		return
 	}
@@ -42,14 +42,32 @@ func (t *Token) PopulateIDToken() {
 	}
 }
 
-func (t *Token) Raw() interface{} {
-	ptr := unsafe.Pointer(&t.Token)
-	raw := *(*interface{})(unsafe.Pointer(uintptr(ptr) + rawField.Offset))
-	return raw
-}
+// IdToken returns the id token from the oauth2 token
+func IdToken(ctx context.Context, token *oauth2.Token) (*oauth2.Token, error) {
+	idTokenString := ""
+	if value := token.Extra("id_token"); value != nil {
+		idTokenString, _ = value.(string)
+	}
+	if idTokenString == "" {
+		return nil, fmt.Errorf("failed to get identity token")
+	}
+	var unverifiedToken *jwt.Token
+	_, err := jwt.Parse(idTokenString, func(token *jwt.Token) (interface{}, error) {
+		unverifiedToken = token
+		return nil, fmt.Errorf("unverified token")
+	})
+	if unverifiedToken == nil && err != nil {
+		return nil, fmt.Errorf("failed to parse id token: %w", err)
+	}
+	expiryTime, err := unverifiedToken.Claims.GetExpirationTime()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get expiration time: %w", err)
+	}
+	return &oauth2.Token{
+		TokenType:    "Bearer",
+		AccessToken:  idTokenString,
+		RefreshToken: token.RefreshToken,
+		Expiry:       expiryTime.Add(0),
+	}, nil
 
-func init() {
-	rawField, _ = reflect.TypeOf(oauth2.Token{}).FieldByName("raw")
 }
-
-var rawField reflect.StructField
