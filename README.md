@@ -26,13 +26,13 @@ The goal of this project is provide API for integrating secret.
 
 ```bash
   #To secure raw secrets 
-  scy -m=secure  -d=gcp://secretmanager/projects/viant-e2e/secrets/my_raw_secret1  -k=blowfish://default -t=raw
+  scy secure  -d=gcp://secretmanager/projects/viant-e2e/secrets/my_raw_secret1  -k=blowfish://default -t=raw
   #To reveal raw secrets 
-  scy -m=reveal -s=gcp://secretmanager/projects/viant-e2e/secrets/aw1test  -k=blowfish://default -t=raw
+  scy reveal -s=gcp://secretmanager/projects/viant-e2e/secrets/aw1test  -k=blowfish://default -t=raw
   
   #create JWT claim
   echo '{"user_id":123,"email":"dev@viantinc.com"}' > claims.json 
-  scy -m=signJwt -s=claims.json -r=private.scy -k=blowfish://default  
+  scy signJwt -s=claims.json -r=private.scy -k=blowfish://default  
 ```
 
 check [CLI](cmd/README.md) for mode details
