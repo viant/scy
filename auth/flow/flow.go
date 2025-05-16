@@ -2,10 +2,23 @@ package flow
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 	"golang.org/x/oauth2"
 	"strings"
 )
+
+// GenerateCodeChallenge creates a PKCE code challenge from a code verifier
+func GenerateCodeChallenge(verifier string) string {
+	sha := sha256.Sum256([]byte(verifier))
+	return base64.RawURLEncoding.EncodeToString(sha[:])
+}
+
+// GenerateCodeVerifier creates a random code verifier for PKCE
+func GenerateCodeVerifier() string {
+	return randomToken()
+}
 
 // BuildAuthCodeURL builds the authorization URL for the OAuth2 flow
 func BuildAuthCodeURL(redirectURL string, config *oauth2.Config, opts *Options) (string, error) {
@@ -19,7 +32,7 @@ func BuildAuthCodeURL(redirectURL string, config *oauth2.Config, opts *Options) 
 			return "", err
 		}
 		oauth2Options = append(oauth2Options,
-			oauth2.SetAuthURLParam("code_challenge", generateCodeChallenge(codeVerifier)),
+			oauth2.SetAuthURLParam("code_challenge", GenerateCodeChallenge(codeVerifier)),
 			oauth2.SetAuthURLParam("code_challenge_method", "S256"),
 		)
 	}

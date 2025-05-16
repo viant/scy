@@ -2,7 +2,6 @@ package flow
 
 import (
 	"crypto/rand"
-	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -30,12 +29,6 @@ func fetchCodeFromLocationHeader(response *http.Response) (string, error) {
 		return "", fmt.Errorf("missing code in redirect")
 	}
 	return code, nil
-}
-
-// generateCodeChallenge creates a PKCE code challenge from a code verifier
-func generateCodeChallenge(verifier string) string {
-	sha := sha256.Sum256([]byte(verifier))
-	return base64.RawURLEncoding.EncodeToString(sha[:])
 }
 
 // randomToken generates a cryptographically secure random token
