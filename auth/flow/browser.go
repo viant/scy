@@ -11,7 +11,7 @@ import (
 type BrowserFlow struct{}
 
 func (s *BrowserFlow) Token(ctx context.Context, config *oauth2.Config, options ...Option) (*oauth2.Token, error) {
-	opts := NewOptions(options)
+	codeVerifier := GenerateCodeVerifier()
 	server, err := endpoint.New()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create server %v", err)
@@ -20,8 +20,7 @@ func (s *BrowserFlow) Token(ctx context.Context, config *oauth2.Config, options 
 
 	//local server will wait for callback
 	redirectURL := fmt.Sprintf("http://localhost:%v/callback", server.Port)
-
-	URL, err := BuildAuthCodeURL(redirectURL, config, opts)
+	URL, err := BuildAuthCodeURL(config, append(options, WithRedirectURI(redirectURL), WithCodeVerifier(codeVerifier))...)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +41,7 @@ func (s *BrowserFlow) Token(ctx context.Context, config *oauth2.Config, options 
 	if code == "" {
 		return nil, fmt.Errorf("failed to find auth code")
 	}
-	return Exchange(ctx, config, code, append(options, WithCodeVerifier(opts.codeVerifier), WithRedirectURL(redirectURL))...)
+	return Exchange(ctx, config, code, append(options, WithCodeVerifier(codeVerifier), WithRedirectURI(redirectURL))...)
 }
 
 func NewBrowserFlow() *BrowserFlow {

@@ -21,18 +21,20 @@ func GenerateCodeVerifier() string {
 }
 
 // BuildAuthCodeURL builds the authorization URL for the OAuth2 flow
-func BuildAuthCodeURL(redirectURL string, config *oauth2.Config, opts *Options) (string, error) {
+func BuildAuthCodeURL(config *oauth2.Config, options ...Option) (string, error) {
+
+	opts := NewOptions(options)
+
 	var oauth2Options = []oauth2.AuthCodeOption{
-		oauth2.SetAuthURLParam("redirect_uri", redirectURL),
+		oauth2.SetAuthURLParam("redirect_uri", opts.redirectURL),
 	}
 	// Add PKCE parameters only if PKCE is enabled
 	if opts.usePKCE {
-		codeVerifier, err := opts.CodeVerifier()
-		if err != nil {
-			return "", err
+		if opts.codeVerifier == "" {
+			return "", fmt.Errorf("code verifier is required for PKCE flow")
 		}
 		oauth2Options = append(oauth2Options,
-			oauth2.SetAuthURLParam("code_challenge", GenerateCodeChallenge(codeVerifier)),
+			oauth2.SetAuthURLParam("code_challenge", GenerateCodeChallenge(opts.codeVerifier)),
 			oauth2.SetAuthURLParam("code_challenge_method", "S256"),
 		)
 	}

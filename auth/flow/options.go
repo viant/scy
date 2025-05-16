@@ -31,14 +31,6 @@ func (o *Options) State() string {
 	return o.state
 }
 
-func (o *Options) CodeVerifier() (string, error) {
-	if o.codeVerifier != "" {
-		return o.codeVerifier, nil
-	}
-	o.codeVerifier = randomToken()
-	return o.codeVerifier, nil
-}
-
 func NewOptions(opts []Option) *Options {
 	ret := &Options{
 		scopes:        []string{},
@@ -78,7 +70,7 @@ func WithPostParams(values map[string]string) Option {
 	}
 }
 
-func WithRedirectURL(redirectURL string) Option {
+func WithRedirectURI(redirectURL string) Option {
 	return func(o *Options) {
 		o.redirectURL = redirectURL
 	}
