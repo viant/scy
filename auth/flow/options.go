@@ -7,9 +7,8 @@ type Options struct {
 	state         string
 	codeVerifier  string
 	usePKCE       bool
+	redirectURL   string
 }
-
-
 
 func (o *Options) Scopes(scopes ...string) []string {
 	var dedupeScopes []string
@@ -23,7 +22,6 @@ func (o *Options) Scopes(scopes ...string) []string {
 	}
 	return dedupeScopes
 }
-
 
 func (o *Options) State() string {
 	if o.state != "" {
@@ -80,9 +78,22 @@ func WithPostParams(values map[string]string) Option {
 	}
 }
 
+func WithRedirectURL(redirectURL string) Option {
+	return func(o *Options) {
+		o.redirectURL = redirectURL
+	}
+}
+
 func WithState(state string) Option {
 	return func(o *Options) {
 		o.state = state
+	}
+}
+
+// WithCodeVerifier sets the code verifier for PKCE flow
+func WithCodeVerifier(codeVerifier string) Option {
+	return func(o *Options) {
+		o.codeVerifier = codeVerifier
 	}
 }
 

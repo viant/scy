@@ -5,7 +5,6 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
-	"golang.org/x/oauth2"
 	"io"
 	mathrand "math/rand"
 	"net/http"
@@ -31,31 +30,6 @@ func fetchCodeFromLocationHeader(response *http.Response) (string, error) {
 		return "", fmt.Errorf("missing code in redirect")
 	}
 	return code, nil
-}
-
-func buildAuthCodeURL(redirectURL string, config *oauth2.Config, opts *Options) (string, error) {
-	var oauth2Options = []oauth2.AuthCodeOption{
-		oauth2.SetAuthURLParam("redirect_uri", redirectURL),
-	}
-	// Add PKCE parameters only if PKCE is enabled
-	if opts.usePKCE {
-		codeVerifier, err := opts.CodeVerifier()
-		if err != nil {
-			return "", err
-		}
-		oauth2Options = append(oauth2Options,
-			oauth2.SetAuthURLParam("code_challenge", generateCodeChallenge(codeVerifier)),
-			oauth2.SetAuthURLParam("code_challenge_method", "S256"),
-		)
-	}
-	scopes := opts.Scopes(config.Scopes...)
-	oauth2Options = append(oauth2Options, oauth2.SetAuthURLParam("scope", strings.Join(scopes, " ")))
-
-	for paramName, paramValue := range opts.authURLParams {
-		oauth2Options = append(oauth2Options, oauth2.SetAuthURLParam(paramName, paramValue))
-	}
-	URL := config.AuthCodeURL(opts.State(), oauth2Options...)
-	return URL, nil
 }
 
 // generateCodeChallenge creates a PKCE code challenge from a code verifier

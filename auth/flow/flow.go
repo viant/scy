@@ -1,0 +1,55 @@
+package flow
+
+import (
+	"context"
+	"fmt"
+	"golang.org/x/oauth2"
+	"strings"
+)
+
+// BuildAuthCodeURL builds the authorization URL for the OAuth2 flow
+func BuildAuthCodeURL(redirectURL string, config *oauth2.Config, opts *Options) (string, error) {
+	var oauth2Options = []oauth2.AuthCodeOption{
+		oauth2.SetAuthURLParam("redirect_uri", redirectURL),
+	}
+	// Add PKCE parameters only if PKCE is enabled
+	if opts.usePKCE {
+		codeVerifier, err := opts.CodeVerifier()
+		if err != nil {
+			return "", err
+		}
+		oauth2Options = append(oauth2Options,
+			oauth2.SetAuthURLParam("code_challenge", generateCodeChallenge(codeVerifier)),
+			oauth2.SetAuthURLParam("code_challenge_method", "S256"),
+		)
+	}
+	scopes := opts.Scopes(config.Scopes...)
+	oauth2Options = append(oauth2Options, oauth2.SetAuthURLParam("scope", strings.Join(scopes, " ")))
+
+	for paramName, paramValue := range opts.authURLParams {
+		oauth2Options = append(oauth2Options, oauth2.SetAuthURLParam(paramName, paramValue))
+	}
+	URL := config.AuthCodeURL(opts.State(), oauth2Options...)
+	return URL, nil
+}
+
+// Exchange exchanges the authorization code for an access token
+func Exchange(ctx context.Context, config *oauth2.Config, code string, options ...Option) (*oauth2.Token, error) {
+	opts := NewOptions(options)
+	// Create exchange options
+	exchangeOptions := []oauth2.AuthCodeOption{
+		oauth2.SetAuthURLParam("redirect_uri", opts.redirectURL),
+	}
+	// Only include code_verifier for PKCE flow
+	if opts.usePKCE {
+		exchangeOptions = append(exchangeOptions,
+			oauth2.SetAuthURLParam("code_verifier", opts.codeVerifier),
+		)
+	}
+
+	tkn, err := config.Exchange(ctx, code, exchangeOptions...)
+	if tkn == nil && err == nil {
+		err = fmt.Errorf("failed to get token")
+	}
+	return tkn, err
+}

@@ -21,7 +21,7 @@ func (s *BrowserFlow) Token(ctx context.Context, config *oauth2.Config, options 
 	//local server will wait for callback
 	redirectURL := fmt.Sprintf("http://localhost:%v/callback", server.Port)
 
-	URL, err := buildAuthCodeURL(redirectURL, config, opts)
+	URL, err := BuildAuthCodeURL(redirectURL, config, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -42,26 +42,7 @@ func (s *BrowserFlow) Token(ctx context.Context, config *oauth2.Config, options 
 	if code == "" {
 		return nil, fmt.Errorf("failed to find auth code")
 	}
-
-	// Create exchange options
-	exchangeOptions := []oauth2.AuthCodeOption{
-		oauth2.SetAuthURLParam("redirect_uri", redirectURL),
-	}
-
-	// Only include code_verifier for PKCE flow
-	if opts.usePKCE {
-		exchangeOptions = append(exchangeOptions,
-			oauth2.SetAuthURLParam("code_verifier", opts.codeVerifier),
-		)
-	}
-
-	config.Endpoint.AuthStyle = oauth2.AuthStyleInHeader
-
-	tkn, err := config.Exchange(ctx, code, exchangeOptions...)
-	if tkn == nil && err == nil {
-		err = fmt.Errorf("failed to get token")
-	}
-	return tkn, err
+	return Exchange(ctx, config, code, append(options, WithCodeVerifier(opts.codeVerifier), WithRedirectURL(redirectURL))...)
 }
 
 func NewBrowserFlow() *BrowserFlow {
