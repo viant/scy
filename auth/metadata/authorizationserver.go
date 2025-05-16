@@ -1,17 +1,22 @@
-package meta
+package metadata
 
-// AuthorizationServerMetadata models the JSON object defined in RFC 8414
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/url"
+	"strings"
+)
+
+// AuthorizationServer models the JSON object defined in RFC 8414
 // (OAuth 2.0 Authorization Server Metadata).
-//
-// NOTE:  • All slices are nil by default; add values as needed.
-//   - The "Extra" map preserves extension parameters that are
-//     not explicitly modelled here.
-type AuthorizationServerMetadata struct {
+type AuthorizationServer struct {
 	// REQUIRED
 	Issuer                string `json:"issuer"` // Base URL
 	AuthorizationEndpoint string `json:"authorization_endpoint,omitempty"`
 	TokenEndpoint         string `json:"token_endpoint,omitempty"`
-	JwksURI               string `json:"jwks_uri,omitempty"`
+	JSONWebKeySetURI      string `json:"jwks_uri,omitempty"`
 
 	// RECOMMENDED
 	RegistrationEndpoint string   `json:"registration_endpoint,omitempty"`
@@ -55,4 +60,51 @@ type AuthorizationServerMetadata struct {
 
 	// Catch-all for undeclared / future metadata
 	Extra map[string]any `json:"-"`
+}
+
+// FetchAuthorizationServerMetadata fetches the Authorization Server
+func FetchAuthorizationServerMetadata(ctx context.Context, issuer string, client *http.Client) (*AuthorizationServer, error) {
+	if client == nil {
+		client = http.DefaultClient
+	}
+
+	wellKnownURL, err := joinWellKnown(issuer)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, wellKnownURL, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code %d", resp.StatusCode)
+	}
+
+	var metaDoc AuthorizationServer
+	if err := json.NewDecoder(resp.Body).Decode(&metaDoc); err != nil {
+		return nil, err
+	}
+	return &metaDoc, nil
+}
+
+// joinWellKnown builds “…/.well-known/oauth-authorization-server” as  specified in RFC 8414 §5, preserving any existing issuer path and guaranteeing exactly one “/” separator.
+func joinWellKnown(issuer string) (string, error) {
+	u, err := url.Parse(issuer)
+	if err != nil {
+		return "", fmt.Errorf("issuer URL parse error: %w", err)
+	}
+	// The well-known segment must be relative to the *issuer path* (if any).
+	u.Path = strings.TrimRight(u.Path, "/") + "/.well-known/oauth-authorization-server"
+	// Queries or fragments are not allowed on the discovery URL.
+	u.RawQuery = ""
+	u.Fragment = ""
+	return u.String(), nil
 }

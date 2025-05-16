@@ -1,4 +1,4 @@
-package meta
+package metadata
 
 // OpenIDConfiguration models the OpenID Provider Metadata as defined in
 // OpenID Connect Discovery 1.0 (https://openid.net/specs/openid-connect-discovery-1_0.html)
