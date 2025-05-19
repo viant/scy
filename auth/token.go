@@ -35,11 +35,7 @@ func (t *Token) PopulateIDToken() {
 	if raw == nil {
 		return
 	}
-	if rawMap, ok := raw.(map[string]interface{}); ok {
-		if token, ok := rawMap["id_token"]; ok {
-			t.IDToken = token.(string)
-		}
-	}
+	t.IDToken, _ = raw.(string)
 }
 
 // IdToken returns the id token from the oauth2 token

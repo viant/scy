@@ -7,13 +7,16 @@ import (
 	"encoding/base64"
 )
 
-// GenerateKid generates a Key ID (kid) from the given RSA public key.
+// GenerateKid returns a JWK SHA-256 thumbprint in
+// base64url-without-padding – exactly what AssignKeyID
+// expects if you pass crypto.SHA256.
 func GenerateKid(pub *rsa.PublicKey) (string, error) {
-	derBytes, err := x509.MarshalPKIXPublicKey(pub)
+	der, err := x509.MarshalPKIXPublicKey(pub)
 	if err != nil {
 		return "", err
 	}
-	sum := sha256.Sum256(derBytes)
-	kid := base64.RawURLEncoding.EncodeToString(sum[:8]) // shorten to 8 bytes for readability
-	return kid, nil
+	sum := sha256.Sum256(der)
+	out := sum[:]
+	out = out[:8]
+	return base64.RawURLEncoding.EncodeToString(out), nil
 }

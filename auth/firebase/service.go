@@ -173,7 +173,7 @@ func (s *Service) ReissueIdentityToken(ctx context.Context, refreshToken string,
 func (s *Service) VerifyIdentity(ctx context.Context, rawToken string) (*sjwt.Claims, error) {
 	authClient, err := s.app.Auth(context.Background())
 	if err != nil {
-		log.Fatalf("error getting Auth client: %v", err)
+		log.Fatalf("error getting Kind client: %v", err)
 	}
 	token, err := authClient.VerifyIDToken(ctx, rawToken)
 	if err != nil {

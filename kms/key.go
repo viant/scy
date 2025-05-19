@@ -17,13 +17,15 @@ import (
 type Key struct {
 	Raw    string
 	Path   string
-	Auth   string
+	Kind   string
 	Scheme string
 }
 
 // Key returns key data
 func (k *Key) Key(ctx context.Context, defaultValue []byte) ([]byte, error) {
-	switch k.Auth {
+	switch k.Kind {
+	case "raw":
+		return []byte(k.Raw), nil
 	case "inline":
 		return []byte(k.Path), nil
 	case "default":
@@ -113,7 +115,7 @@ func NewKey(raw string) (*Key, error) {
 	return &Key{
 		Scheme: scheme,
 		Raw:    raw,
-		Auth:   url.Host(raw),
+		Kind:   url.Host(raw),
 		Path:   path,
 	}, nil
 }

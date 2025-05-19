@@ -3,10 +3,22 @@ package blowfish
 import (
 	"context"
 	"crypto/cipher"
+	"cryp
 	"fmt"
 	"github.com/viant/scy/kms"
 	"golang.org/x/crypto/blowfish"
 )
+
+// legalBlowfishKey returns a key ≤ 56 bytes.
+// If src is already ≤ 56 bytes it’s used verbatim.
+// Otherwise a 32-byte SHA-256 digest is returned.
+func EnsureKey(src []byte) []byte {
+	if len(src) <= 56 {
+		return src
+	}
+	sum := sha256.Sum256(src) // [32]byte
+	return sum[:]             // ← 32-byte slice
+}
 
 const scheme = "blowfish"
 
@@ -23,10 +35,10 @@ func blowfishCheckSizeAndPad(padded []byte) []byte {
 	return padded
 }
 
-//Cipher represents blowfish cipher
+// Cipher represents blowfish cipher
 type Cipher struct{}
 
-//Encrypt encrypts data with supplied key
+// Encrypt encrypts data with supplied key
 func (b *Cipher) Encrypt(ctx context.Context, key *kms.Key, data []byte) ([]byte, error) {
 	cipherKey, err := key.Key(ctx, defaultKey)
 	if err != nil {
@@ -44,7 +56,7 @@ func (b *Cipher) Encrypt(ctx context.Context, key *kms.Key, data []byte) ([]byte
 	return ciphertext, nil
 }
 
-//Decrypt decrypts data with supplied key
+// Decrypt decrypts data with supplied key
 func (b *Cipher) Decrypt(ctx context.Context, key *kms.Key, data []byte) ([]byte, error) {
 	cipherKey, err := key.Key(ctx, defaultKey)
 	if err != nil {

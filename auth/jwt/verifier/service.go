@@ -103,10 +103,12 @@ func (s *Service) PublicKeys() (map[string]*rsa.PublicKey, error) {
 	var err error
 	for _, key := range s.keys {
 		publicKey, err := jwt.ParseRSAPublicKeyFromPEM(key)
+
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse public key: %w", err)
 		}
 		kid, err := sjwt.GenerateKid(publicKey)
+
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate kid: %w", err)
 		}

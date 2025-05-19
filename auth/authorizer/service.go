@@ -15,23 +15,40 @@ type Service struct {
 	secretsService *scy.Service
 }
 
-// Command represents a command to authorize
-type Command struct {
-	AuthFlow  string         `json:"authFlow"`
+type OAuthConfig struct {
 	Config    *oauth2.Config `json:"config"`
 	ConfigURL string         `json:"configURL"`
+}
 
+// Command represents a command to authorize
+type Command struct {
+	OAuthConfig
+	AuthFlow   string            `json:"authFlow"`
 	Scopes     []string          `json:"scopes"`
 	Secrets    map[string]string `json:"secrets"`
 	SecretsURL string            `json:"secretsURL"`
 	UsePKCE    bool              `json:"usePKCE"`
 }
 
-
+func (s *Service) EnsureConfig(ctx context.Context, config *OAuthConfig) error {
+	if config.ConfigURL != "" {
+		resource := scy.EncodedResource(config.ConfigURL).Decode(ctx, reflect.TypeOf(cred.Oauth2Config{}))
+		secret, err := s.secretsService.Load(ctx, resource)
+		if err != nil {
+			return fmt.Errorf("failed to load oauth2 config: %v", err)
+		}
+		configValue, ok := secret.Target.(*cred.Oauth2Config)
+		if !ok {
+			return fmt.Errorf("failed to cast secret to config, expected %T but had %T", &cred.Oauth2Config{}, secret.Target)
+		}
+		config.Config = &configValue.Config
+	}
+	return nil
+}
 
 // Authorize authorizes a command using the provided context and command
 func (s *Service) Authorize(ctx context.Context, command *Command) (*oauth2.Token, error) {
-	err := s.ensureConfig(ctx, command)
+	err := s.EnsureConfig(ctx, &command.OAuthConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -66,24 +83,6 @@ func (s *Service) ensureSecrets(ctx context.Context, command *Command) error {
 	}
 	return nil
 }
-
-func (s *Service) ensureConfig(ctx context.Context, command *Command) error {
-	if command.ConfigURL != "" {
-		resource := scy.EncodedResource(command.ConfigURL).Decode(ctx, reflect.TypeOf(cred.Oauth2Config{}))
-		secret, err := s.secretsService.Load(ctx, resource)
-		if err != nil {
-			return fmt.Errorf("failed to load oauth2 config: %v", err)
-		}
-		configValue, ok := secret.Target.(*cred.Oauth2Config)
-		if !ok {
-			return fmt.Errorf("failed to cast secret to config, expected %T but had %T", &cred.Oauth2Config{}, secret.Target)
-		}
-		command.Config = &configValue.Config
-	}
-	return nil
-}
-
-
 
 func New() *Service {
 	return &Service{secretsService: scy.New()}
