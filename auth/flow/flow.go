@@ -23,9 +23,11 @@ func GenerateCodeVerifier() string {
 // BuildAuthCodeURL builds the authorization URL for the OAuth2 flow
 func BuildAuthCodeURL(config *oauth2.Config, options ...Option) (string, error) {
 	opts := NewOptions(options)
-	var oauth2Options = []oauth2.AuthCodeOption{
-		oauth2.SetAuthURLParam("redirect_uri", opts.redirectURL),
+	var oauth2Options = []oauth2.AuthCodeOption{}
+	if opts.redirectURL != "" {
+		oauth2Options = append(oauth2Options, oauth2.SetAuthURLParam("redirect_uri", opts.redirectURL))
 	}
+
 	// Add PKCE parameters only if PKCE is enabled
 	if opts.usePKCE {
 		if opts.codeVerifier == "" {
