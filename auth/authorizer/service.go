@@ -7,6 +7,7 @@ import (
 	"github.com/viant/scy/auth/flow"
 	"github.com/viant/scy/cred"
 	"golang.org/x/oauth2"
+	"net/http"
 	"reflect"
 )
 
@@ -46,6 +47,18 @@ func (s *Service) EnsureConfig(ctx context.Context, config *OAuthConfig) error {
 	return nil
 }
 
+// IDClient returns identity token HTTP config
+func (s *Service) IDClient(ctx context.Context, command *Command) (*http.Client, error) {
+	token, err := s.Authorize(ctx, command)
+	if err != nil {
+		return nil, err
+	}
+	if idToken := token.Extra("id_token"); idToken != nil {
+		token.AccessToken = idToken.(string)
+	}
+	return command.Config.Client(ctx, token), nil
+}
+
 // Authorize authorizes a command using the provided context and command
 func (s *Service) Authorize(ctx context.Context, command *Command) (*oauth2.Token, error) {
 	err := s.EnsureConfig(ctx, &command.OAuthConfig)
@@ -82,6 +95,15 @@ func (s *Service) ensureSecrets(ctx context.Context, command *Command) error {
 		"password": basicAuth.Password,
 	}
 	return nil
+}
+
+// RefreshToken refresh token using the provided context, refresh token, and config
+func (s *Service) RefreshToken(ctx context.Context, refreshToken *oauth2.Token, config *OAuthConfig) (*oauth2.Token, error) {
+	if err := s.EnsureConfig(ctx, config); err != nil {
+		return nil, err
+	}
+	tokenSource := config.Config.TokenSource(ctx, refreshToken)
+	return tokenSource.Token()
 }
 
 func New() *Service {
