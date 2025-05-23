@@ -48,8 +48,10 @@ func Authorize(auth *AuthorizeCmd) error {
 	}
 
 	command := &authorizer.Command{
-		AuthFlow:   auth.AuthFlow,
-		ConfigURL:  auth.ConfigURL,
+		AuthFlow: auth.AuthFlow,
+		OAuthConfig: authorizer.OAuthConfig{
+			ConfigURL: auth.ConfigURL,
+		},
 		SecretsURL: auth.SecretsURL,
 		Scopes:     auth.Scopes,
 		UsePKCE:    auth.UsePKCE,
