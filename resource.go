@@ -14,14 +14,14 @@ import (
 
 // Resource represents a secret config
 type Resource struct {
-	Name      string           `json:",omitempty"  yaml:"Name"`
-	URL       string           `json:",omitempty" yaml:"URL"`
-	Key       string           `json:",omitempty" yaml:"Key"` //encryption key
-	MaxRetry  int              `json:",omitempty" yaml:"MaxRetry"`
-	TimeoutMs int              `json:",omitempty" yaml:"TimeoutMs"`
-	Fallback  *Resource        `json:",omitempty" yaml:"Fallback"`
+	Name      string           `json:",omitempty"  yaml:"Name,omitempty"`
+	URL       string           `json:",omitempty" yaml:"URL,omitempty"`
+	Key       string           `json:",omitempty" yaml:"Key,omitempty"` //encryption key
+	MaxRetry  int              `json:",omitempty" yaml:"MaxRetry,omitempty"`
+	TimeoutMs int              `json:",omitempty" yaml:"TimeoutMs,omitempty"`
+	Fallback  *Resource        `json:",omitempty" yaml:"Fallback,omitempty"`
 	Options   []storage.Option `json:"-" yaml:"-"`
-	Data      []byte           `json:",omitempty" yaml:"Data"`
+	Data      []byte           `json:",omitempty" yaml:"Data,omitempty"`
 	target    reflect.Type
 }
 
