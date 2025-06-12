@@ -8,18 +8,28 @@ import (
 	"golang.org/x/oauth2"
 )
 
-type BrowserFlow struct{}
+type Endpoint interface {
+	Start()
+	Wait() error
+	AuthCode() string
+	RedirectURL() string
+}
+
+type BrowserFlow struct {
+	NewEndpoint func() (Endpoint, error)
+}
 
 func (s *BrowserFlow) Token(ctx context.Context, config *oauth2.Config, options ...Option) (*oauth2.Token, error) {
 	codeVerifier := GenerateCodeVerifier()
-	server, err := endpoint.New()
+	server, err := s.NewEndpoint()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create server %v", err)
 	}
 	go server.Start()
 
 	//local server will wait for callback
-	redirectURL := fmt.Sprintf("http://localhost:%v/callback", server.Port)
+	redirectURL := server.RedirectURL()
+
 	URL, err := BuildAuthCodeURL(config, append(options, WithRedirectURI(redirectURL), WithCodeVerifier(codeVerifier))...)
 	if err != nil {
 		return nil, err
@@ -44,6 +54,27 @@ func (s *BrowserFlow) Token(ctx context.Context, config *oauth2.Config, options 
 	return Exchange(ctx, config, code, append(options, WithCodeVerifier(codeVerifier), WithRedirectURI(redirectURL))...)
 }
 
-func NewBrowserFlow() *BrowserFlow {
-	return &BrowserFlow{}
+// BrowserFlowOption represents browser flow
+type BrowserFlowOption func(*BrowserFlow)
+
+func WithNewEndpoint(newEndpoint func() (Endpoint, error)) BrowserFlowOption {
+	return func(o *BrowserFlow) {
+		if newEndpoint == nil {
+			return
+		}
+		o.NewEndpoint = newEndpoint
+	}
+}
+
+// NewBrowserFlow create new browser flow
+func NewBrowserFlow(opts ...BrowserFlowOption) *BrowserFlow {
+	ret := &BrowserFlow{
+		NewEndpoint: func() (Endpoint, error) {
+			return endpoint.New()
+		},
+	}
+	for _, opt := range opts {
+		opt(ret)
+	}
+	return ret
 }

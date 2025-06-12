@@ -26,6 +26,7 @@ func NewGCloud() *oauth2.Config {
 	var temp = make([]byte, len(gcloudEnc))
 	copy(temp, gcloudEnc)
 	sdkClient, _ = loadEncryptedClient(temp)
+
 	return sdkClient
 }
 

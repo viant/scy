@@ -24,11 +24,12 @@ type OAuthConfig struct {
 // Command represents a command to authorize
 type Command struct {
 	OAuthConfig
-	AuthFlow   string            `json:"authFlow"`
-	Scopes     []string          `json:"scopes"`
-	Secrets    map[string]string `json:"secrets"`
-	SecretsURL string            `json:"secretsURL"`
-	UsePKCE    bool              `json:"usePKCE"`
+	AuthFlow    string                        `json:"authFlow"`
+	Scopes      []string                      `json:"scopes"`
+	Secrets     map[string]string             `json:"secrets"`
+	SecretsURL  string                        `json:"secretsURL"`
+	UsePKCE     bool                          `json:"usePKCE"`
+	NewEndpoint func() (flow.Endpoint, error) `json:"-" yaml:"-"`
 }
 
 func (s *Service) EnsureConfig(ctx context.Context, config *OAuthConfig) error {
@@ -71,7 +72,11 @@ func (s *Service) Authorize(ctx context.Context, command *Command) (*oauth2.Toke
 			return nil, err
 		}
 	}
-	var authFlow flow.AuthFlow = flow.NewBrowserFlow()
+	var opts []flow.BrowserFlowOption
+	if command.NewEndpoint != nil {
+		opts = append(opts, flow.WithNewEndpoint(command.NewEndpoint))
+	}
+	var authFlow flow.AuthFlow = flow.NewBrowserFlow(opts...)
 	switch command.AuthFlow {
 	case "OOB":
 		authFlow = flow.NewOutOfBandFlow()

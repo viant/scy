@@ -35,6 +35,10 @@ func (s *Server) Close() {
 	}
 }
 
+func (s *Server) RedirectURL() string {
+	return fmt.Sprintf("http://localhost:%v/callback", s.Port)
+}
+
 // Wait waits until the server receives the authentication callback
 func (s *Server) Wait() error {
 	select {
