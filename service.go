@@ -10,17 +10,19 @@ import (
 	"github.com/viant/afs/storage"
 	"github.com/viant/scy/cred"
 	"github.com/viant/scy/kms"
+	"gopkg.in/yaml.v3"
 	"os"
+	"path/fil
 	"reflect"
 	"strings"
 )
 
-//Service represents secret service
+// Service represents secret service
 type Service struct {
 	fs afs.Service
 }
 
-//Store stores secret
+// Store stores secret
 func (s *Service) Store(ctx context.Context, secret *Secret) error {
 	err := secret.Validate()
 	if err != nil {
@@ -54,7 +56,13 @@ func (s *Service) store(ctx context.Context, secret *Secret, err error, payload 
 				return err
 			}
 		}
-		if payload, err = json.Marshal(secret.Target); err != nil {
+		ext := strings.ToLower(filepath.Ext(secret.URL))
+		if ext == ".yml" || ext == ".yaml" {
+			payload, err = yaml.Marshal(secret.Target)
+		} else {
+			payload, err = json.Marshal(secret.Target)
+		}
+		if err != nil {
 			return err
 		}
 	}
@@ -86,7 +94,7 @@ func (s *Service) loadKeyCipher(resourceKey string) (*kms.Key, kms.Cipher, error
 	return key, cipher, nil
 }
 
-//Load loads secret
+// Load loads secret
 func (s *Service) Load(ctx context.Context, resource *Resource) (*Secret, error) {
 	data := resource.Data
 	secret, err := s.load(ctx, resource, data)
@@ -128,16 +136,25 @@ func (s *Service) load(ctx context.Context, resource *Resource, data []byte) (*S
 		Resource: resource,
 		payload:  data,
 	}
+	ext := strings.ToLower(filepath.Ext(resource.URL))
+	isYAML := ext == ".yml" || ext == ".yaml"
 	isJSON := isJson(data)
+
 	if resource.Name == "" && resource.target == nil {
-		if isJSON {
+		if isJSON || isYAML {
 			resource.target = reflect.TypeOf(cred.Generic{})
 		}
 	}
+
 	shallDecipher := key != nil
-	if resource.target != nil && isJSON {
+	if resource.target != nil && (isJSON || isYAML) {
 		value := reflect.New(resource.target).Interface()
-		if err = secret.Decode(value); err != nil {
+		if isYAML {
+			err = yaml.Unmarshal(data, value)
+		} else {
+			err = json.Unmarshal(data, value)
+		}
+		if err != nil {
 			return nil, err
 		}
 		if securable, ok := value.(kms.Securable); ok {
@@ -159,21 +176,33 @@ func (s *Service) load(ctx context.Context, resource *Resource, data []byte) (*S
 		if data, err = cipher.Decrypt(ctx, key, data); err != nil {
 			return nil, err
 		}
-		if isJSON = isJson(data); isJSON {
-			if resource.target != nil && isJSON {
-				value := reflect.New(resource.target).Interface()
+		// re-evaluate JSON and YAML after decryption
+		isJSON = isJson(data)
+		// YAML detection relies on extension
+		if resource.target != nil {
+			value := reflect.New(resource.target).Interface()
+			if isYAML {
+				if err = yaml.Unmarshal(data, value); err == nil {
+					secret.Target = value
+				}
+			} else if isJSON {
 				if err = json.Unmarshal(data, value); err == nil {
 					secret.Target = value
 				}
 			}
 		}
 	}
-	secret.IsPlain = !isJSON
+
+	secret.IsPlain = !(isJSON || isYAML)
 	secret.payload = data
 	if secret.Target == nil {
 		secret.Target = string(data)
 	} else {
-		secret.payload, _ = json.Marshal(secret.Target)
+		if isYAML {
+			secret.payload, _ = yaml.Marshal(secret.Target)
+		} else {
+			secret.payload, _ = json.Marshal(secret.Target)
+		}
 	}
 	return secret, nil
 }
@@ -183,7 +212,7 @@ func isJson(data []byte) bool {
 	return json.Valid(data) && len(data) > 0 && (data[0] == '{' || data[0] == '[')
 }
 
-//New creates a new secret service
+// New creates a new secret service
 func New() *Service {
 	return &Service{fs: afs.New()}
 }

@@ -36,6 +36,12 @@ func TestService_Load(t *testing.T) {
 			secret:      scy.NewSecret(&cred.Basic{Username: "Bob", Password: "ch@nge!Me"}, nil),
 			expect:      &cred.Generic{SSH: cred.SSH{Basic: cred.Basic{Username: "Bob", Password: "ch@nge!Me"}}},
 		},
+		{
+			description: "yaml secrets",
+			resource:    scy.NewResource("", path.Join(basePath, "yaml.yml"), "blowfish://default"),
+			secret:      scy.NewSecret(&cred.Basic{Username: "Alice", Password: "sEcReT"}, nil),
+			expect:      &cred.Generic{SSH: cred.SSH{Basic: cred.Basic{Username: "Alice", Password: "sEcReT"}}},
+		},
 	}
 
 	for _, testCase := range testCases {
