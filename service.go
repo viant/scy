@@ -12,7 +12,7 @@ import (
 	"github.com/viant/scy/kms"
 	"gopkg.in/yaml.v3"
 	"os"
-	"path/fil
+	"path/filepath"
 	"reflect"
 	"strings"
 )
