@@ -9,7 +9,7 @@ import (
 )
 
 type Oauth2Config struct {
-	oauth2.Config
+	oauth2.Config         `yaml:",inline"`
 	EncryptedClientSecret string `json:",omitempty" yaml:"EncryptedSecret"`
 }
 
