@@ -3,12 +3,13 @@ package authorizer
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"reflect"
+
 	"github.com/viant/scy"
 	"github.com/viant/scy/auth/flow"
 	"github.com/viant/scy/cred"
 	"golang.org/x/oauth2"
-	"net/http"
-	"reflect"
 )
 
 // Service is a secretsService that provides authorization functionality
@@ -86,6 +87,9 @@ func (s *Service) Authorize(ctx context.Context, command *Command) (*oauth2.Toke
 }
 
 func (s *Service) ensureSecrets(ctx context.Context, command *Command) error {
+	if len(command.Secrets) > 0 {
+		return nil
+	}
 	resource := scy.EncodedResource(command.SecretsURL).Decode(ctx, reflect.TypeOf(cred.Basic{}))
 	secret, err := s.secretsService.Load(ctx, resource)
 	if err != nil {
