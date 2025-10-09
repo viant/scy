@@ -11,6 +11,8 @@ func TargetType(target string) (reflect.Type, error) {
 	switch target {
 	case "aws":
 		result = reflect.TypeOf(Aws{})
+	case "azure":
+		result = reflect.TypeOf(Azure{})
 	case "basic":
 		result = reflect.TypeOf(Basic{})
 	case "jwt":
@@ -28,7 +30,7 @@ func TargetType(target string) (reflect.Type, error) {
 	case "", "raw":
 
 	default:
-		return nil, fmt.Errorf("unknown secret target: %v, avail: [aws, basic, jwt, sha1, ,ssh, generic]", target)
+		return nil, fmt.Errorf("unknown secret target: %v, avail: [aws, azure, basic, jwt, sha1, key, ssh, generic, oauth2]", target)
 	}
 	return result, nil
 }
