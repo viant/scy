@@ -4,14 +4,15 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+
 	"github.com/viant/scy/kms"
 )
 
 // Azure represents Azure OAuth2 configuration
 // ClientSecret is optional for public clients; when empty, Cipher/Decipher are no-ops.
 type Azure struct {
-	Oauth2Config
-	TenantID string `json:"tenantId" yaml:"tenantId"`
+	Oauth2Config `yaml:",inline"`
+	TenantID     string ` yaml:"tenantId"`
 }
 
 // Cipher encrypts ClientSecret when present and clears it.
