@@ -1,6 +1,7 @@
 package browser
 
 import (
+	"fmt"
 	"os/exec"
 	"runtime"
 )
@@ -9,6 +10,8 @@ import (
 func Open(url string) *exec.Cmd {
 	var cmd string
 	var args []string
+
+	fmt.Println("OPENING BROWSER")
 	switch runtime.GOOS {
 	case "windows":
 		cmd = "cmd"

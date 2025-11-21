@@ -6,7 +6,6 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 	"os"
 	"strings"
-	"syscall"
 	"time"
 )
 
@@ -36,13 +35,13 @@ func readSecrets(nameLabel, secretLabel string, timeout time.Duration) (name str
 		fmt.Printf("Enter %s: ", nameLabel)
 		name, _ = reader.ReadString('\n')
 		fmt.Printf("Enter %s: ", secretLabel)
-		secret1Bytes, err = terminal.ReadPassword(syscall.Stdin)
+		secret1Bytes, err = terminal.ReadPassword(int(os.Stdin.Fd()))
 		if err != nil {
 			err = fmt.Errorf("failed to read %s %v", secretLabel, err)
 			return
 		}
 		fmt.Printf("\nRetype %s: ", secretLabel)
-		secret2Bytes, err = terminal.ReadPassword(syscall.Stdin)
+		secret2Bytes, err = terminal.ReadPassword(int(os.Stdin.Fd()))
 		if err != nil {
 			err = fmt.Errorf("failed to read %s %v", secretLabel, err)
 			return
@@ -51,13 +50,13 @@ func readSecrets(nameLabel, secretLabel string, timeout time.Duration) (name str
 		if string(secret2Bytes) != secret {
 			err = fmt.Errorf("%s did not match", secretLabel)
 			fmt.Printf("\nEnter %s: ", secretLabel)
-			secret1Bytes, err = terminal.ReadPassword(syscall.Stdin)
+			secret1Bytes, err = terminal.ReadPassword(int(os.Stdin.Fd()))
 			if err != nil {
 				err = fmt.Errorf("failed to read %s %v", secretLabel, err)
 				return
 			}
 			fmt.Printf("\nRetype %s: ", secretLabel)
-			secret2Bytes, err = terminal.ReadPassword(syscall.Stdin)
+			secret2Bytes, err = terminal.ReadPassword(int(os.Stdin.Fd()))
 			if err != nil {
 				err = fmt.Errorf("failed to read %s %v", secretLabel, err)
 				return

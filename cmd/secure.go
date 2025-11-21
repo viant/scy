@@ -12,17 +12,15 @@ import (
 	"github.com/viant/scy/cred/secret/term"
 	"golang.org/x/crypto/ssh/terminal"
 	"log"
+	"os"
 	"reflect"
-	"syscall"
 	"time"
 )
 
-
-
 type SecureCmd struct {
 	TypedSource
-	DestURL   string `short:"d" long:"dest" description:"dest location"`
-	Key       string `short:"k" long:"key" description:"key i.e blowfish://default"`
+	DestURL string `short:"d" long:"dest" description:"dest location"`
+	Key     string `short:"k" long:"key" description:"key i.e blowfish://default"`
 }
 
 // Execute runs the secure command
@@ -30,7 +28,6 @@ func (s *SecureCmd) Execute(args []string) error {
 	s.Init()
 	return Secure(s)
 }
-
 
 // SecureCmd command for securing secrets
 
@@ -55,7 +52,6 @@ func (s *SecureCmd) Validate() error {
 	}
 	return nil
 }
-
 
 // Secure secures secrets
 func Secure(secure *SecureCmd) error {
@@ -158,13 +154,13 @@ func readSecret(timeout time.Duration) ([]byte, error) {
 		}()
 
 		fmt.Print("Enter Secret: ")
-		rawSecret, err = terminal.ReadPassword(syscall.Stdin)
+		rawSecret, err = terminal.ReadPassword(int(os.Stdin.Fd()))
 		if err != nil {
 			err = fmt.Errorf("failed to read secret %v", err)
 			return
 		}
 		fmt.Print("\nRetype Secret: ")
-		rawSecret2, err = terminal.ReadPassword(syscall.Stdin)
+		rawSecret2, err = terminal.ReadPassword(int(os.Stdin.Fd()))
 		if err != nil {
 			err = fmt.Errorf("failed to read secret %v", err)
 			return

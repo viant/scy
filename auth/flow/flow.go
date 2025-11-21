@@ -22,6 +22,9 @@ func GenerateCodeVerifier() string {
 
 // BuildAuthCodeURL builds the authorization URL for the OAuth2 flow
 func BuildAuthCodeURL(config *oauth2.Config, options ...Option) (string, error) {
+	if config == nil {
+		return "", fmt.Errorf("oauth2 config is nil")
+	}
 	opts := NewOptions(options)
 	var oauth2Options = []oauth2.AuthCodeOption{}
 	if opts.redirectURL != "" {
@@ -50,6 +53,9 @@ func BuildAuthCodeURL(config *oauth2.Config, options ...Option) (string, error) 
 
 // Exchange exchanges the authorization code for an access token
 func Exchange(ctx context.Context, config *oauth2.Config, code string, options ...Option) (*oauth2.Token, error) {
+	if config == nil {
+		return nil, fmt.Errorf("oauth2 config is nil")
+	}
 	opts := NewOptions(options)
 	// Create exchange options
 	exchangeOptions := []oauth2.AuthCodeOption{
