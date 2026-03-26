@@ -2,9 +2,11 @@ package authorizer
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"reflect"
+	"strings"
 
 	"github.com/viant/scy"
 	"github.com/viant/scy/auth/flow"
@@ -35,7 +37,10 @@ type Command struct {
 
 func (s *Service) EnsureConfig(ctx context.Context, config *OAuthConfig) error {
 	if config.ConfigURL != "" {
-		resource := scy.EncodedResource(config.ConfigURL).Decode(ctx, reflect.TypeOf(cred.Oauth2Config{}))
+		resource, err := decodeResource(ctx, config.ConfigURL, reflect.TypeOf(cred.Oauth2Config{}))
+		if err != nil {
+			return fmt.Errorf("failed to decode oauth2 config resource: %v", err)
+		}
 		secret, err := s.secretsService.Load(ctx, resource)
 		if err != nil {
 			return fmt.Errorf("failed to load oauth2 config: %v", err)
@@ -90,7 +95,10 @@ func (s *Service) ensureSecrets(ctx context.Context, command *Command) error {
 	if len(command.Secrets) > 0 {
 		return nil
 	}
-	resource := scy.EncodedResource(command.SecretsURL).Decode(ctx, reflect.TypeOf(cred.Basic{}))
+	resource, err := decodeResource(ctx, command.SecretsURL, reflect.TypeOf(cred.Basic{}))
+	if err != nil {
+		return fmt.Errorf("failed to decode oauth2 secret resource: %v", err)
+	}
 	secret, err := s.secretsService.Load(ctx, resource)
 	if err != nil {
 		return fmt.Errorf("failed to load oauth2 config: %v", err)
@@ -117,4 +125,36 @@ func (s *Service) RefreshToken(ctx context.Context, refreshToken *oauth2.Token, 
 
 func New() *Service {
 	return &Service{secretsService: scy.New()}
+}
+
+const inlineBase64Prefix = "inlined://base64/"
+
+func decodeResource(ctx context.Context, encoded string, target reflect.Type) (*scy.Resource, error) {
+	resource := scy.EncodedResource(encoded).Decode(ctx, target)
+	if resource == nil {
+		return nil, fmt.Errorf("resource was nil")
+	}
+	if data, ok, err := decodeInlineBase64(resource.URL); ok {
+		if err != nil {
+			return nil, err
+		}
+		resource.Data = data
+	}
+	return resource, nil
+}
+
+func decodeInlineBase64(rawURL string) ([]byte, bool, error) {
+	value := strings.TrimSpace(rawURL)
+	if !strings.HasPrefix(value, inlineBase64Prefix) {
+		return nil, false, nil
+	}
+	encoded := strings.TrimSpace(strings.TrimPrefix(value, inlineBase64Prefix))
+	if encoded == "" {
+		return []byte{}, true, nil
+	}
+	decoded, err := base64.StdEncoding.DecodeString(encoded)
+	if err != nil {
+		return nil, true, fmt.Errorf("invalid inlined base64 payload: %w", err)
+	}
+	return decoded, true, nil
 }
