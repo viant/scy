@@ -86,7 +86,7 @@ func (s *Service) IDToken(ctx context.Context, audience string, scopes ...string
 	}
 	if metadata.OnGCE() {
 		//try to use meta server
-		return nil, fmt.Errorf("failed to acquite token on GCE")
+		return nil, fmt.Errorf("failed to acquire token on GCE")
 	}
 	token, err := s.Auth(ctx, scopes...)
 	if err != nil {
@@ -109,7 +109,7 @@ func (s *Service) Auth(ctx context.Context, scopes ...string) (*auth.Token, erro
 		return &auth.Token{Token: *tkn}, nil
 	}
 	if metadata.OnGCE() {
-		return nil, fmt.Errorf("failed to acquite token on GCE")
+		return nil, fmt.Errorf("failed to acquire token on GCE")
 	}
 	if token, _ := s.loadCachedToken(); token != nil {
 		return token, nil

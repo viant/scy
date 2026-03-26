@@ -3,6 +3,7 @@ package scy
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"github.com/viant/afs"
@@ -16,6 +17,8 @@ import (
 	"reflect"
 	"strings"
 )
+
+const inlineBase64Prefix = "inlined://base64/"
 
 // Service represents secret service
 type Service struct {
@@ -49,7 +52,7 @@ func (s *Service) store(ctx context.Context, secret *Secret, err error, payload 
 	if secret.Target != nil {
 		if securable, ok := secret.Target.(kms.Securable); ok {
 			if key == nil {
-				return fmt.Errorf("enc key is requried by target: %T", secret.Target)
+				return fmt.Errorf("enc key is required by target: %T", secret.Target)
 			}
 			shallCipher = false
 			if err = securable.Cipher(ctx, key); err != nil {
@@ -113,19 +116,25 @@ func (s *Service) load(ctx context.Context, resource *Resource, data []byte) (*S
 		} else if strings.HasPrefix(resource.URL, "/~") {
 			resource.URL = os.Getenv("HOME") + resource.URL[2:]
 		}
-		var err error
-
-		resource.Init()
-		for i := 0; i < resource.MaxRetry; i++ {
-			tCtx, cancel := context.WithTimeout(ctx, resource.Timeout())
-			data, err = s.fs.DownloadWithURL(tCtx, resource.URL, resource.Options...)
-			cancel()
-			if err == nil {
-				break
+		if inlinePayload, ok, err := decodeInlineBase64(resource.URL); ok {
+			if err != nil {
+				return nil, err
 			}
-		}
-		if err != nil {
-			return nil, err
+			data = inlinePayload
+		} else {
+
+			resource.Init()
+			for i := 0; i < resource.MaxRetry; i++ {
+				tCtx, cancel := context.WithTimeout(ctx, resource.Timeout())
+				data, err = s.fs.DownloadWithURL(tCtx, resource.URL, resource.Options...)
+				cancel()
+				if err == nil {
+					break
+				}
+			}
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 	key, cipher, err := s.loadKeyCipher(resource.Key)
@@ -205,6 +214,22 @@ func (s *Service) load(ctx context.Context, resource *Resource, data []byte) (*S
 		}
 	}
 	return secret, nil
+}
+
+func decodeInlineBase64(rawURL string) ([]byte, bool, error) {
+	value := strings.TrimSpace(rawURL)
+	if !strings.HasPrefix(value, inlineBase64Prefix) {
+		return nil, false, nil
+	}
+	encoded := strings.TrimSpace(strings.TrimPrefix(value, inlineBase64Prefix))
+	if encoded == "" {
+		return []byte{}, true, nil
+	}
+	decoded, err := base64.StdEncoding.DecodeString(encoded)
+	if err != nil {
+		return nil, true, fmt.Errorf("invalid inlined base64 payload: %w", err)
+	}
+	return decoded, true, nil
 }
 
 func isJson(data []byte) bool {

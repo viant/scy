@@ -20,6 +20,11 @@ type BrowserFlow struct {
 }
 
 func (s *BrowserFlow) Token(ctx context.Context, config *oauth2.Config, options ...Option) (*oauth2.Token, error) {
+	if s.NewEndpoint == nil {
+		s.NewEndpoint = func() (Endpoint, error) {
+			return endpoint.New()
+		}
+	}
 	codeVerifier := GenerateCodeVerifier()
 	server, err := s.NewEndpoint()
 	if err != nil {

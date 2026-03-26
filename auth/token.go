@@ -38,6 +38,37 @@ func (t *Token) PopulateIDToken() {
 	t.IDToken, _ = raw.(string)
 }
 
+// EnsureExpiryFromIDToken populates Expiry from the id_token exp claim when Expiry is zero.
+// It returns an error if no id_token is available or parsing fails.
+func (t *Token) EnsureExpiryFromIDToken() error {
+	if !t.Expiry.IsZero() {
+		return nil
+	}
+	idTokenString := t.IDToken
+	if idTokenString == "" {
+		if value := t.Extra("id_token"); value != nil {
+			idTokenString, _ = value.(string)
+		}
+	}
+	if idTokenString == "" {
+		return fmt.Errorf("failed to get identity token")
+	}
+	var unverifiedToken *jwt.Token
+	_, err := jwt.Parse(idTokenString, func(token *jwt.Token) (interface{}, error) {
+		unverifiedToken = token
+		return nil, fmt.Errorf("unverified token")
+	})
+	if unverifiedToken == nil && err != nil {
+		return fmt.Errorf("failed to parse id token: %w", err)
+	}
+	expiryTime, err := unverifiedToken.Claims.GetExpirationTime()
+	if err != nil {
+		return fmt.Errorf("failed to get expiration time: %w", err)
+	}
+	t.Expiry = expiryTime.Add(0)
+	return nil
+}
+
 // IdToken returns the id token from the oauth2 token
 func IdToken(ctx context.Context, token *oauth2.Token) (*oauth2.Token, error) {
 	idTokenString := ""
