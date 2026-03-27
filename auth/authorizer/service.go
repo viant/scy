@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/viant/scy"
 	"github.com/viant/scy/auth/flow"
@@ -33,6 +34,16 @@ type Command struct {
 	SecretsURL  string                        `json:"secretsURL"`
 	UsePKCE     bool                          `json:"usePKCE"`
 	NewEndpoint func() (flow.Endpoint, error) `json:"-" yaml:"-"`
+}
+
+// SessionTokenPayload is a transport-friendly representation of an OAuth token
+// bundle suitable for handing off to another trusted service for session
+// creation and token persistence.
+type SessionTokenPayload struct {
+	AccessToken  string
+	IDToken      string
+	RefreshToken string
+	ExpiresAt    string
 }
 
 func (s *Service) EnsureConfig(ctx context.Context, config *OAuthConfig) error {
@@ -89,6 +100,29 @@ func (s *Service) Authorize(ctx context.Context, command *Command) (*oauth2.Toke
 
 	}
 	return authFlow.Token(ctx, command.Config, flow.WithPKCE(command.UsePKCE), flow.WithScopes(command.Scopes...), flow.WithPostParams(command.Secrets))
+}
+
+// AuthorizeSessionTokenPayload performs authorization and normalizes the result
+// into a serializable token payload for downstream session establishment.
+func (s *Service) AuthorizeSessionTokenPayload(ctx context.Context, command *Command) (*SessionTokenPayload, error) {
+	token, err := s.Authorize(ctx, command)
+	if err != nil {
+		return nil, err
+	}
+	if token == nil {
+		return nil, fmt.Errorf("oauth token was nil")
+	}
+	payload := &SessionTokenPayload{
+		AccessToken:  strings.TrimSpace(token.AccessToken),
+		RefreshToken: strings.TrimSpace(token.RefreshToken),
+	}
+	if idToken, _ := token.Extra("id_token").(string); strings.TrimSpace(idToken) != "" {
+		payload.IDToken = strings.TrimSpace(idToken)
+	}
+	if !token.Expiry.IsZero() {
+		payload.ExpiresAt = token.Expiry.Format(time.RFC3339)
+	}
+	return payload, nil
 }
 
 func (s *Service) ensureSecrets(ctx context.Context, command *Command) error {
