@@ -27,6 +27,8 @@ cp scy /usr/local/bin
 
 ```bash
 scy -h
+scy -v
+scy --version
 ```
 
 You can use any afs supported storage, also including the following secret store managers:
