@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/viant/scy/auth/authorizer"
+	"golang.org/x/oauth2"
+	"strings"
 )
 
 // AuthorizeCmd command for authorization
@@ -14,6 +16,7 @@ type AuthorizeCmd struct {
 	SecretsURL string   `short:"e" long:"secretsURL" description:"secrets URL for username/password"`
 	Scopes     []string `short:"s" long:"scopes" description:"OAuth2 scopes"`
 	UsePKCE    bool     `short:"p" long:"usePKCE" description:"use PKCE for OAuth2 flow"`
+	TokenType  string   `long:"tokenType" description:"output token type" choice:"id" choice:"access" choice:"json"`
 	Key        string   `short:"k" long:"key" description:"key i.e blowfish://default"`
 }
 
@@ -62,15 +65,54 @@ func Authorize(auth *AuthorizeCmd) error {
 		return fmt.Errorf("authorization failed: %v", err)
 	}
 
-	// Print the token as JSON
-	data, err := json.MarshalIndent(token, "", "  ")
+	output, err := formatAuthorizeOutput(token, auth.TokenType)
 	if err != nil {
-		return fmt.Errorf("failed to marshal token: %v", err)
+		return err
 	}
-	fmt.Printf("%s\n", data)
-
-	// Also print the access token for easy copying
-	fmt.Printf("\nAccess Token: %s\n", token.AccessToken)
+	fmt.Println(output)
 
 	return nil
+}
+
+func formatAuthorizeOutput(token *oauth2.Token, tokenType string) (string, error) {
+	if token == nil {
+		return "", fmt.Errorf("oauth token was nil")
+	}
+	switch tokenType {
+	case "id":
+		idToken, ok := token.Extra("id_token").(string)
+		if !ok || idToken == "" {
+			return "", fmt.Errorf("id token was not present in oauth response")
+		}
+		return idToken, nil
+	case "access":
+		if token.AccessToken == "" {
+			return "", fmt.Errorf("access token was empty")
+		}
+		return token.AccessToken, nil
+	case "json":
+		data, err := json.MarshalIndent(token, "", "  ")
+		if err != nil {
+			return "", fmt.Errorf("failed to marshal token: %v", err)
+		}
+		return string(data), nil
+	case "":
+		data, err := json.MarshalIndent(token, "", "  ")
+		if err != nil {
+			return "", fmt.Errorf("failed to marshal token: %v", err)
+		}
+		var lines = []string{string(data)}
+		if token.AccessToken != "" {
+			lines = append(lines, "Access Token: "+token.AccessToken)
+		}
+		if idToken, _ := token.Extra("id_token").(string); idToken != "" {
+			lines = append(lines, "ID Token: "+idToken)
+		}
+		if token.RefreshToken != "" {
+			lines = append(lines, "Refresh Token: "+token.RefreshToken)
+		}
+		return strings.Join(lines, "\n\n"), nil
+	default:
+		return "", fmt.Errorf("unsupported token type: %s", tokenType)
+	}
 }

@@ -254,3 +254,16 @@ scy authorize -a=Browser \
   -s=https://www.googleapis.com/auth/cloud-platform \
   --usePKCE
 ```
+
+Output selection:
+
+```bash
+# Full token JSON
+scy authorize -a=Browser -c='idp_local.enc|blowfish://default' -s=openid --tokenType=json
+
+# Access token only
+scy authorize -a=Browser -c='idp_local.enc|blowfish://default' -s=openid --tokenType=access
+
+# ID token only
+scy authorize -a=Browser -c='idp_local.enc|blowfish://default' -s=openid --tokenType=id
+```
