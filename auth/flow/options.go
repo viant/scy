@@ -11,9 +11,11 @@ type Options struct {
 }
 
 func (o *Options) Scopes(scopes ...string) []string {
+	if len(o.scopes) > 0 {
+		scopes = o.scopes
+	}
 	var dedupeScopes []string
 	var uniques = map[string]bool{}
-	scopes = append(o.scopes, scopes...)
 	for _, scope := range scopes {
 		if _, ok := uniques[scope]; !ok {
 			uniques[scope] = true

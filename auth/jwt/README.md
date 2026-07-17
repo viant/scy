@@ -1,8 +1,51 @@
 ## JWT toolkit
 
+JWT signing and verification support both the legacy flat config and optional resource-gated rules.
 
+- If `Rules` is omitted, behavior is unchanged.
+- Resource-gated rules use JWT `aud`.
+- Rules can override the default algorithm and key material for selected audiences, for example `mcp -> HS256`.
 
+Example config:
 
+```json
+{
+  "JWTValidator": {
+    "RSA": [
+      {
+        "Key": "blowfish://default",
+        "URL": "/opt/datly/jwt/public.enc"
+      }
+    ],
+    "Rules": [
+      {
+        "Resource": ["mcp"],
+        "Algorithm": "HS256",
+        "HMAC": {
+          "Key": "blowfish://default",
+          "URL": "/opt/datly/jwt/mcp_hmac.enc"
+        }
+      }
+    ]
+  },
+  "JwtSigner": {
+    "RSA": {
+      "Key": "blowfish://default",
+      "URL": "/opt/datly/jwt/private.enc"
+    },
+    "Rules": [
+      {
+        "Resource": ["mcp"],
+        "Algorithm": "HS256",
+        "HMAC": {
+          "Key": "blowfish://default",
+          "URL": "/opt/datly/jwt/mcp_hmac.enc"
+        }
+      }
+    ]
+  }
+}
+```
 
 ### Signing and verifying JWT token with custom RSA key
 
@@ -35,6 +78,5 @@ b) Sign claim
 4. To verify JWT Claim
    scy -m=verifyJwt -s=token.json -r=public.scy -k=blowfish://default
 ``` 
-
 
 

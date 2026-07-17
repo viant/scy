@@ -37,6 +37,86 @@ The goal of this project is provide API for integrating secret.
 
 check [CLI](cmd/README.md) for mode details
 
+### JWT configuration
+
+JWT signing and verification remain backward compatible.
+
+- If `Rules` is not configured, the existing flat `RSA` or `HMAC` configuration behaves exactly as before.
+- `Rules` is optional and only needed when different audiences/resources must use different keys or algorithms.
+- Resource gating uses JWT `aud`.
+
+Legacy config:
+
+```json
+{
+  "JWTValidator": {
+    "RSA": [
+      {
+        "Key": "blowfish://default",
+        "URL": "/opt/datly/jwt/public.enc"
+      }
+    ]
+  },
+  "JwtSigner": {
+    "RSA": {
+      "Key": "blowfish://default",
+      "URL": "/opt/datly/jwt/private.enc"
+    }
+  }
+}
+```
+
+Resource-gated config:
+
+```json
+{
+  "JWTValidator": {
+    "RSA": [
+      {
+        "Key": "blowfish://default",
+        "URL": "/opt/datly/jwt/public.enc"
+      }
+    ],
+    "Rules": [
+      {
+        "Resource": ["mcp"],
+        "Algorithm": "HS256",
+        "HMAC": {
+          "Key": "blowfish://default",
+          "URL": "/opt/datly/jwt/mcp_hmac.enc"
+        }
+      }
+    ]
+  },
+  "JwtSigner": {
+    "RSA": {
+      "Key": "blowfish://default",
+      "URL": "/opt/datly/jwt/private.enc"
+    },
+    "Rules": [
+      {
+        "Resource": ["mcp"],
+        "Algorithm": "HS256",
+        "HMAC": {
+          "Key": "blowfish://default",
+          "URL": "/opt/datly/jwt/mcp_hmac.enc"
+        }
+      }
+    ]
+  }
+}
+```
+
+In the rule-based form:
+
+- `Resource` matches JWT `aud`
+- signer picks the first matching rule for the requested audience
+- verifier reads unverified `alg` and `aud`, then picks the matching rule
+- if no rule matches, the verifier falls back to the legacy default profile
+- if a rule matches the audience but not the token algorithm, verification is rejected
+
+See [JWT toolkit](auth/jwt/README.md) for signing and verification examples.
+
 
 
 ### In application
