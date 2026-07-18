@@ -175,3 +175,40 @@ func TestNew(t *testing.T) {
 		assert.EqualValues(t, testCase.expectUID, claims.UserID)
 	}
 }
+
+func TestService_PublicKeys(t *testing.T) {
+	baseLocation := toolbox.CallerDirectory(3)
+	rsaPublic := &scy.Resource{URL: path.Join(baseLocation, "testdata/public.scy"), Key: "blowfish://default"}
+
+	svc := New(&Config{
+		RSA: []*scy.Resource{rsaPublic},
+		Rules: []*Rule{
+			{
+				Resource:  []string{"web"},
+				Algorithm: "RS256",
+				RSA:       []*scy.Resource{rsaPublic},
+			},
+			{
+				Resource:  []string{"mcp"},
+				Algorithm: "HS256",
+				HMAC:      &scy.Resource{URL: path.Join(baseLocation, "testdata/hmac.scy"), Key: "blowfish://default"},
+			},
+		},
+	})
+
+	err := svc.Init(context.Background())
+	if !assert.NoError(t, err) {
+		return
+	}
+
+	keys, err := svc.PublicKeys()
+	if !assert.NoError(t, err) {
+		return
+	}
+
+	assert.Len(t, keys, 1)
+	for kid, key := range keys {
+		assert.NotEmpty(t, kid)
+		assert.NotNil(t, key)
+	}
+}

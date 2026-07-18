@@ -5,6 +5,7 @@ JWT signing and verification support both the legacy flat config and optional re
 - If `Rules` is omitted, behavior is unchanged.
 - Resource-gated rules use JWT `aud`.
 - Rules can override the default algorithm and key material for selected audiences, for example `mcp -> HS256`.
+- JWKS-style public key discovery should expose RSA keys from the default profile and any RSA rule profiles, but never HMAC keys.
 
 Example config:
 
@@ -78,5 +79,4 @@ b) Sign claim
 4. To verify JWT Claim
    scy -m=verifyJwt -s=token.json -r=public.scy -k=blowfish://default
 ``` 
-
 
