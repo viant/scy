@@ -28,14 +28,20 @@ type Service struct {
 }
 
 // PublicKeys returns RSA public keys from the default verification profile.
-// This preserves the pre-rules behavior used by JWKS endpoints.
+// This preserves the pre-rules behavior used by JWKS endpoints and includes
+// RSA keys from rule profiles so JWKS can expose every asymmetric signing key
+// issued by the service.
 func (s *Service) PublicKeys() (map[string]*rsa.PublicKey, error) {
-	if s.defaultProfile == nil || len(s.defaultProfile.publicKeys) == 0 {
-		return map[string]*rsa.PublicKey{}, nil
+	result := make(map[string]*rsa.PublicKey)
+	if s.defaultProfile != nil {
+		for kid, key := range s.defaultProfile.publicKeys {
+			result[kid] = key
+		}
 	}
-	result := make(map[string]*rsa.PublicKey, len(s.defaultProfile.publicKeys))
-	for kid, key := range s.defaultProfile.publicKeys {
-		result[kid] = key
+	for _, rule := range s.rules {
+		for kid, key := range rule.publicKeys {
+			result[kid] = key
+		}
 	}
 	return result, nil
 }
