@@ -27,6 +27,19 @@ type Service struct {
 	config         *Config
 }
 
+// PublicKeys returns RSA public keys from the default verification profile.
+// This preserves the pre-rules behavior used by JWKS endpoints.
+func (s *Service) PublicKeys() (map[string]*rsa.PublicKey, error) {
+	if s.defaultProfile == nil || len(s.defaultProfile.publicKeys) == 0 {
+		return map[string]*rsa.PublicKey{}, nil
+	}
+	result := make(map[string]*rsa.PublicKey, len(s.defaultProfile.publicKeys))
+	for kid, key := range s.defaultProfile.publicKeys {
+		result[kid] = key
+	}
+	return result, nil
+}
+
 // Validate checks if  jwt token is valid
 func (s *Service) Validate(ctx context.Context, tokenString string) (*jwt.Token, error) {
 	if s.config == nil {
