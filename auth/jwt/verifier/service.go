@@ -244,6 +244,24 @@ func (s *Service) selectProfile(tokenString string) (*profile, error) {
 		}
 		return nil, fmt.Errorf("no jwt verification profile matched audience %v and algorithm %q", []string(claims.Audience), alg)
 	}
+	if len(claims.Audience) == 0 {
+		algMatches := make([]*profile, 0, len(s.rules))
+		for _, candidate := range s.rules {
+			if candidate.supportsAlg(alg) {
+				algMatches = append(algMatches, candidate)
+			}
+		}
+		switch len(algMatches) {
+		case 1:
+			if s.defaultProfile == nil || !s.defaultProfile.supportsAlg(alg) {
+				return algMatches[0], nil
+			}
+			return nil, fmt.Errorf("ambiguous jwt verification profile for algorithm %q without audience", alg)
+		case 0:
+		default:
+			return nil, fmt.Errorf("ambiguous jwt verification profile for algorithm %q without audience", alg)
+		}
+	}
 	if s.defaultProfile != nil && s.defaultProfile.supportsAlg(alg) {
 		return s.defaultProfile, nil
 	}

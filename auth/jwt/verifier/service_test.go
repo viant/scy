@@ -137,6 +137,62 @@ func TestNew(t *testing.T) {
 			},
 		},
 		{
+			description: "no audience token uses unique hs256 rule",
+			config:      &signer.Config{HMAC: hmacKey},
+			verifierConfig: &Config{
+				RSA: []*scy.Resource{rsaPublic},
+				Rules: []*Rule{
+					{
+						Resource:  []string{"mcp"},
+						Algorithm: "HS512",
+						HMAC:      hmacKey,
+					},
+				},
+			},
+			expiry:    time.Hour,
+			isValid:   true,
+			data:      &sjwt.Claims{UserID: 456},
+			expectUID: 456,
+		},
+		{
+			description: "no audience token fails when hs512 rules are ambiguous",
+			config:      &signer.Config{HMAC: hmacKey},
+			verifierConfig: &Config{
+				Rules: []*Rule{
+					{
+						Resource:  []string{"mcp"},
+						Algorithm: "HS512",
+						HMAC:      hmacKey,
+					},
+					{
+						Resource:  []string{"cli"},
+						Algorithm: "HS512",
+						HMAC:      hmacKey,
+					},
+				},
+			},
+			expiry:  time.Hour,
+			isValid: false,
+			data:    &sjwt.Claims{UserID: 789},
+		},
+		{
+			description: "no audience token fails when default and rule both match algorithm",
+			config:      &signer.Config{HMAC: hmacKey},
+			verifierConfig: &Config{
+				HMAC: hmacKey,
+				Rules: []*Rule{
+					{
+						Resource:  []string{"mcp"},
+						Algorithm: "HS512",
+						HMAC:      hmacKey,
+					},
+				},
+			},
+			expiry:  time.Hour,
+			isValid: false,
+			data:    &sjwt.Claims{UserID: 790},
+		},
+		{
 			description:    "expired token",
 			config:         &signer.Config{RSA: rsaPrivate},
 			verifierConfig: &Config{RSA: []*scy.Resource{rsaPublic}},
