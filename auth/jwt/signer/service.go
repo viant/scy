@@ -20,6 +20,7 @@ type TokenOption func(token *jwt.Token)
 type profile struct {
 	resources  []string
 	algorithm  string
+	compact    bool
 	key        []byte
 	privateKey *rsa.PrivateKey
 	kid        string
@@ -46,14 +47,11 @@ func (s *Service) Create(ttl time.Duration, content interface{}, options ...Toke
 	if shouldEmbedContent(content) {
 		claims.Data = content
 	}
-	claims.ExpiresAt = &jwt.NumericDate{now.Add(ttl)}
-	claims.IssuedAt = &jwt.NumericDate{now}
-	claims.NotBefore = &jwt.NumericDate{now}
-
 	selected := s.selectProfile([]string(claims.Audience))
 	if selected == nil {
 		return "", fmt.Errorf("create: no jwt signing profile configured for audience %v", []string(claims.Audience))
 	}
+	applyStandardTimes(claims, now, ttl, selected.compact)
 	signingMethod, err := selected.signingMethod()
 	if err != nil {
 		return "", err
@@ -195,7 +193,7 @@ func (s *Service) Init(ctx context.Context) error {
 		return nil
 	}
 	if s.config.RSA != nil || s.config.HMAC != nil {
-		s.defaultProfile = &profile{}
+		s.defaultProfile = &profile{compact: s.config.Compact}
 		if err := s.defaultProfile.init(ctx, s.config.RSA, s.config.HMAC); err != nil {
 			return err
 		}
@@ -207,6 +205,7 @@ func (s *Service) Init(ctx context.Context) error {
 		candidate := &profile{
 			resources: append([]string{}, rule.Resource...),
 			algorithm: rule.Algorithm,
+			compact:   rule.Compact,
 		}
 		if err := candidate.init(ctx, rule.RSA, rule.HMAC); err != nil {
 			return err
@@ -231,4 +230,18 @@ func shouldEmbedContent(content interface{}) bool {
 	default:
 		return true
 	}
+}
+
+func applyStandardTimes(claims *jwt2.Claims, now time.Time, ttl time.Duration, compact bool) {
+	if claims == nil {
+		return
+	}
+	claims.ExpiresAt = &jwt.NumericDate{now.Add(ttl)}
+	if compact {
+		claims.IssuedAt = nil
+		claims.NotBefore = nil
+		return
+	}
+	claims.IssuedAt = &jwt.NumericDate{now}
+	claims.NotBefore = &jwt.NumericDate{now}
 }
