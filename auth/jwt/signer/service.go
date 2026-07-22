@@ -67,6 +67,9 @@ func (s *Service) Create(ttl time.Duration, content interface{}, options ...Toke
 	for _, option := range options {
 		option(token)
 	}
+	if selected.compact {
+		delete(token.Header, "typ")
+	}
 	signed, err := token.SignedString(key)
 	if err != nil {
 		return "", fmt.Errorf("create: sign token: %w", err)
@@ -240,6 +243,7 @@ func applyStandardTimes(claims *jwt2.Claims, now time.Time, ttl time.Duration, c
 	if compact {
 		claims.IssuedAt = nil
 		claims.NotBefore = nil
+		claims.Audience = nil
 		return
 	}
 	claims.IssuedAt = &jwt.NumericDate{now}
