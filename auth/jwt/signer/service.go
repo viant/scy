@@ -43,7 +43,9 @@ func (s *Service) Create(ttl time.Duration, content interface{}, options ...Toke
 	}
 	var err error
 
-	claims.Data = content
+	if shouldEmbedContent(content) {
+		claims.Data = content
+	}
 	claims.ExpiresAt = &jwt.NumericDate{now.Add(ttl)}
 	claims.IssuedAt = &jwt.NumericDate{now}
 	claims.NotBefore = &jwt.NumericDate{now}
@@ -217,5 +219,16 @@ func (s *Service) Init(ctx context.Context) error {
 func New(config *Config) *Service {
 	return &Service{
 		config: config,
+	}
+}
+
+func shouldEmbedContent(content interface{}) bool {
+	switch content.(type) {
+	case nil:
+		return false
+	case jwt2.Claims, *jwt2.Claims:
+		return false
+	default:
+		return true
 	}
 }
