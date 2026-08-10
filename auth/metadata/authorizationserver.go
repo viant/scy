@@ -92,6 +92,9 @@ func FetchAuthorizationServerMetadata(ctx context.Context, issuer string, client
 	if err := json.NewDecoder(resp.Body).Decode(&metaDoc); err != nil {
 		return nil, err
 	}
+	if metaDoc.Issuer != issuer {
+		return nil, fmt.Errorf("issuer mismatch in authorization server metadata (RFC 8414 §3.3): expected %q, received %q", issuer, metaDoc.Issuer)
+	}
 	return &metaDoc, nil
 }
 
