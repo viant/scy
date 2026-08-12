@@ -2,16 +2,16 @@ package cmd
 
 type TypedSource struct {
 	SourceURL string `short:"s" long:"src" description:"source location"`
-	Target    string `short:"t" long:"target" default:"raw" choice:"raw" choice:"basic"  choice:"sha1" choice:"aws" choice:"ssh" choice:"generic"  choice:"jwt" choice:"oauth2" choice:"key" description:"target type"`
+	Target    string `short:"t" long:"target" default:"raw" choice:"raw" choice:"basic" choice:"sha1" choice:"aws" choice:"ssh" choice:"generic" choice:"jwt" choice:"oauth2" choice:"key" choice:"certificate" choice:"x509" description:"target type"`
 }
 
 // Options is the main command structure with command annotations
 type Options struct {
-	Secure    *SecureCmd     `command:"secure" description:"secures secrets"`
-	Reveal    *RevealCmd     `command:"reveal" description:"reveals secrets"`
-	SignJwt   *SignJwtCmd    `command:"signJwt" description:"sign JWT"`
-	VerifyJwt *VerifyJwtCmd  `command:"verifyJwt" description:"verify JWT"`
-	Authorize *AuthorizeCmd  `command:"authorize" description:"authorize using OAuth2"`
+	Secure    *SecureCmd    `command:"secure" description:"secures secrets"`
+	Reveal    *RevealCmd    `command:"reveal" description:"reveals secrets"`
+	SignJwt   *SignJwtCmd   `command:"signJwt" description:"sign JWT"`
+	VerifyJwt *VerifyJwtCmd `command:"verifyJwt" description:"verify JWT"`
+	Authorize *AuthorizeCmd `command:"authorize" description:"authorize using OAuth2"`
 }
 
 // Init normalizes file locations

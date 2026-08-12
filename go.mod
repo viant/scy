@@ -1,8 +1,6 @@
 module github.com/viant/scy
 
-go 1.22
-
-toolchain go1.22.5
+go 1.23.0
 
 require (
 	cloud.google.com/go/compute/metadata v0.3.0
@@ -12,11 +10,11 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.27.11
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.26
 	github.com/aws/aws-sdk-go-v2/service/sts v1.30.3
-	github.com/golang-jwt/jwt/v4 v4.5.0
+	github.com/beevik/etree v1.6.0
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/lestrrat-go/jwx v1.2.29
-	github.com/pkg/errors v0.9.1
+	github.com/russellhaering/goxmldsig v1.6.0
 	github.com/stretchr/testify v1.9.0
 	github.com/viant/afs v1.25.1-0.20231110184132-877ed98abca1
 	github.com/viant/afsc v1.9.1
@@ -24,6 +22,7 @@ require (
 	golang.org/x/crypto v0.32.0
 	golang.org/x/oauth2 v0.19.0
 	google.golang.org/api v0.174.0
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -52,6 +51,7 @@ require (
 	github.com/go-logr/logr v1.4.1 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
+	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/s2a-go v0.1.7 // indirect
@@ -59,11 +59,13 @@ require (
 	github.com/googleapis/enterprise-certificate-proxy v0.3.2 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.3 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
+	github.com/jonboulle/clockwork v0.5.0 // indirect
 	github.com/lestrrat-go/backoff/v2 v2.0.8 // indirect
 	github.com/lestrrat-go/blackmagic v1.0.2 // indirect
 	github.com/lestrrat-go/httpcc v1.0.1 // indirect
 	github.com/lestrrat-go/iter v1.0.2 // indirect
 	github.com/lestrrat-go/option v1.0.1 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/viant/assertly v0.9.1-0.20220620174148-bab013f93a60 // indirect
 	github.com/viant/xreflect v0.6.2 // indirect
@@ -88,5 +90,4 @@ require (
 	google.golang.org/grpc v1.63.2 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

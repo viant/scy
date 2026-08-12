@@ -27,10 +27,12 @@ func TargetType(target string) (reflect.Type, error) {
 		result = reflect.TypeOf(Generic{})
 	case "oauth2":
 		result = reflect.TypeOf(Oauth2Config{})
+	case "certificate", "x509":
+		result = reflect.TypeOf(Certificate{})
 	case "", "raw":
 
 	default:
-		return nil, fmt.Errorf("unknown secret target: %v, avail: [aws, azure, basic, jwt, sha1, key, ssh, generic, oauth2]", target)
+		return nil, fmt.Errorf("unknown secret target: %v, avail: [aws, azure, basic, jwt, sha1, key, ssh, generic, oauth2, certificate, x509]", target)
 	}
 	return result, nil
 }

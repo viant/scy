@@ -239,13 +239,13 @@ func applyStandardTimes(claims *jwt2.Claims, now time.Time, ttl time.Duration, c
 	if claims == nil {
 		return
 	}
-	claims.ExpiresAt = &jwt.NumericDate{now.Add(ttl)}
+	claims.ExpiresAt = jwt.NewNumericDate(now.Add(ttl))
 	if compact {
 		claims.IssuedAt = nil
 		claims.NotBefore = nil
 		claims.Audience = nil
 		return
 	}
-	claims.IssuedAt = &jwt.NumericDate{now}
-	claims.NotBefore = &jwt.NumericDate{now}
+	claims.IssuedAt = jwt.NewNumericDate(now)
+	claims.NotBefore = jwt.NewNumericDate(now)
 }

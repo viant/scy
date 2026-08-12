@@ -73,8 +73,8 @@ func postFormData(URL string, data map[string]string) (*http.Response, error) {
 		data, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return nil, err
-			fmt.Println(string(data))
 		}
+		_ = data
 		resp.Body.Close()
 	}
 	return resp, nil

@@ -3,7 +3,7 @@
 [![GoReportCard](https://goreportcard.com/badge/github.com/viant/scy)](https://goreportcard.com/report/github.com/viant/scy)
 [![GoDoc](https://godoc.org/github.com/viant/scy?status.svg)](https://godoc.org/github.com/viant/scy)
 
-This library is compatible with Go 1.16+
+This library is compatible with Go 1.23+
 
 Please refer to [`CHANGELOG.md`](CHANGELOG.md) if you encounter breaking changes.
 
@@ -116,6 +116,39 @@ In the rule-based form:
 - if a rule matches the audience but not the token algorithm, verification is rejected
 
 See [JWT toolkit](auth/jwt/README.md) for signing and verification examples.
+
+### Certificate credentials and XAdES-BES
+
+Scy can load an X.509 certificate and private key from local files or any URL
+supported by `afs`. Inlined private-key material and its password implement
+`kms.Securable`, so they can be protected by the same KMS configuration as
+other Scy credentials.
+
+```go
+certificate := &cred.Certificate{
+    CertificatePath: "file:///secure/signing-certificate.pem",
+    PrivateKeyPath:  "file:///secure/signing-key.pem",
+}
+identity, err := certificate.Identity(ctx)
+if err != nil {
+    return err
+}
+
+signedXML, err := xades.SignEnveloped(unsignedXML, identity, nil)
+if err != nil {
+    return err
+}
+
+// Passing the expected certificate pins verification to that identity.
+result, err := xades.Verify(signedXML, identity.Certificate, time.Now())
+```
+
+The XAdES toolkit supports modern `SigningCertificateV2`, safe RSA/ECDSA suites,
+enveloped/enveloping/detached packaging, explicit certificate trust and
+revocation policies, signature policies, timestamp integration, and validated
+long-term evidence containers. It performs no implicit network or filesystem
+resolution. See the [XAdES toolkit](auth/xades/README.md) for its security model
+and complete examples.
 
 
 
