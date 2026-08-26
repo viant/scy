@@ -1,3 +1,7 @@
+## Aug 26 2026
+
+- Added support for loading read-only secrets from 1Password via `op://` URLs (requires `github.com/viant/afsc/op`).
+
 ## Aug 11 2026
 
 - Added reusable X.509 `crypto.Signer` identities and PEM credential loading.
