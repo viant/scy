@@ -10,6 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/viant/scy"
+
+	_ "github.com/viant/afsc/op"
 )
 
 func TestMain(m *testing.M) {

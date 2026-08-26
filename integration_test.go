@@ -9,6 +9,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/viant/scy"
+
+	_ "github.com/viant/afsc/op"
 )
 
 // TestIntegrationLoad_OpURL exercises a real 1Password secret via scy.Load.

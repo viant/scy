@@ -1,6 +1,6 @@
 ## Aug 26 2026
 
-- Added support for loading read-only secrets from 1Password via `op://` URLs (requires `github.com/viant/afsc/op`).
+- Added support for loading read-only secrets from 1Password via `op://` URLs. Consumers must blank-import `github.com/viant/afsc/op` (the scy CLI does this automatically).
 
 ## Aug 11 2026
 
