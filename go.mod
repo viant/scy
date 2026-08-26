@@ -18,6 +18,7 @@ require (
 	github.com/stretchr/testify v1.9.0
 	github.com/viant/afs v1.25.1-0.20231110184132-877ed98abca1
 	github.com/viant/afsc v1.9.1
+	# needs updated afsc after previous PR merges
 	github.com/viant/toolbox v0.36.0
 	golang.org/x/crypto v0.32.0
 	golang.org/x/oauth2 v0.19.0
