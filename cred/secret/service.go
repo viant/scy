@@ -102,10 +102,7 @@ func (s *Service) ExpandSecret(ctx context.Context, input string, key Key, resou
 	}
 
 	if value := secret.String(); len(value) > 0 {
-		// Flatten newlines so shell expansion (e.g. echo '${gcp.Data}' | docker login)
-		// stays a single command line. Docker _json_key auth accepts whitespace-flattened JSON.
-		flat := strings.ReplaceAll(value, "\n", " ")
-		pairs = append(pairs, expandPairs(holder, "Data", flat)...)
+		pairs = append(pairs, expandPairs(holder, "Data", value)...)
 	}
 	var replacer = strings.NewReplacer(pairs...)
 	return replacer.Replace(input), nil

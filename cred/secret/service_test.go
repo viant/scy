@@ -33,6 +33,24 @@ func TestNewSecrets(t *testing.T) {
 				secret.WithFileSystem(&secretFs),
 			},
 		},
+		{
+			// testdata/multiline.json is deliberately pretty-printed (multi-line)
+			// to document that Service.Load already decodes JSON secrets into
+			// cred.Generic and re-marshals them compact (service.go's
+			// `secret.payload, _ = json.Marshal(secret.Target)`), so Data is
+			// always single-line JSON here regardless of the source file's
+			// formatting - a newline-flatten on this value would be a no-op.
+			// Non-JSON secrets (e.g. a raw PEM block) are NOT round-tripped
+			// this way and would still need care if ever passed through Data.
+			secrets: secret.NewSecrets(map[string]string{
+				"gcp": "testdata/multiline",
+			}),
+			input:  "${gcp.Data}",
+			expect: `{"project_id":"test","type":"service_account"}`,
+			options: []secret.Option{
+				secret.WithFileSystem(&secretFs),
+			},
+		},
 	}
 
 	for _, testCase := range testCases {

@@ -18,7 +18,7 @@ import (
 // Run manually (not from CI or Cursor):
 //
 //	op signin
-//	export OP_INTEGRATION_REF='op://Private/viant-e2e.json/notesPlain'
+//	export OP_INTEGRATION_REF='op://Private/e2e-account.json/notesPlain'
 //	go test . -tags=integration -run TestIntegrationLoad_OpURL -count=1 -v
 func TestIntegrationLoad_OpURL(t *testing.T) {
 	ref := os.Getenv("OP_INTEGRATION_REF")
