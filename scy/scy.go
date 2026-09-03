@@ -4,6 +4,7 @@ import (
 	_ "github.com/viant/afsc/aws"
 	_ "github.com/viant/afsc/gcp"
 	_ "github.com/viant/afsc/gs"
+	_ "github.com/viant/afsc/op"
 	_ "github.com/viant/afsc/s3"
 	"github.com/viant/scy/cmd"
 	_ "github.com/viant/scy/kms/blowfish"

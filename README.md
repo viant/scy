@@ -276,6 +276,7 @@ You can use directly the following [Secret stores](https://github.com/viant/afsc
  - GCP Google Secret Manager
  - AWS - Secret Manager
  - AWS - System Manager - Parameter
+ - 1Password (`op://` via [`github.com/viant/afsc/op`](https://github.com/viant/afsc/tree/master/op); read-only, no encryption key). Applications must blank-import the connector: `_ "github.com/viant/afsc/op"`.
 
 ## Keys
 
