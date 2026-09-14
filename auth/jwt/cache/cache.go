@@ -22,12 +22,12 @@ type (
 	}
 )
 
-//Fetch return from cache or get token from URL
+// Fetch return from cache or get token from URL
 func (c *Cache) Fetch(ctx context.Context, certURL string) (jwk.Set, error) {
 	c.mux.RLock()
 	anEntry, ok := c.sets[certURL]
 	c.mux.RUnlock()
-	if !ok || anEntry.expiry.After(time.Now()) {
+	if !ok || !time.Now().Before(anEntry.expiry) {
 		keySet, err := jwk.Fetch(ctx, certURL)
 		if err != nil {
 			return nil, err
