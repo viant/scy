@@ -56,18 +56,29 @@ func (s *Service) Lookup(ctx context.Context, secret Resource) (*scy.Secret, err
 	if ok {
 		return ret, nil
 	}
-	res, err := secret.resource(ctx, s.fs, s.baseDirectory, s.embedFS)
+	ret, err := s.LookupFresh(ctx, secret)
 	if err != nil {
 		return nil, err
 	}
-	ret, err = s.secrets.Load(ctx, res)
-	if err != nil {
-		return nil, err
-	}
+
 	s.lock.Lock()
 	s.cache[secret.String()] = ret
 	s.lock.Unlock()
 	return ret, nil
+}
+
+// LookupFresh loads one resource without reading or changing the lookup cache.
+// Use it for rotating bearer credentials; ordinary Lookup and key caching remain
+// unchanged. A failed refresh never falls back to a previously cached value.
+func (s *Service) LookupFresh(ctx context.Context, secret Resource) (*scy.Secret, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	res, err := secret.resource(ctx, s.fs, s.baseDirectory, s.embedFS)
+	if err != nil {
+		return nil, err
+	}
+	return s.secrets.Load(ctx, res)
 }
 
 func (s *Service) ExpandSecret(ctx context.Context, input string, key Key, resource Resource) (string, error) {
