@@ -8,6 +8,7 @@ init:
 pipeline:
   build:
     action: exec:run
+    TimeoutMs: 600000
     checkError: true
     commands:
       - cd ${appPath}/scy
@@ -22,3 +23,7 @@ pipeline:
       - export GOARCH=arm64
       - go build -ldflags="-X 'main.Version=${Ver}'" -trimpath
       - tar cvzf scy_darwin_arm64_${Ver}.tar.gz scy
+      - export GOOS=windows
+      - export GOARCH=amd64
+      - go build -ldflags="-X 'main.Version=${Ver}'" -trimpath
+      - tar cvzf scy_windows_amd64_${Ver}.tar.gz scy.exe
